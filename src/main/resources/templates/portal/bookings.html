@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/site :: layout('My bookings', ~{::main}, 'p-bookings')}">
+<body>
+<main>
+  <div class="page-head"><div class="grow"><h1>My bookings</h1></div>
+    <div class="actions"><a class="btn btn-primary" th:href="@{/portal/bookings/new}">Book a service</a></div></div>
+  <th:block th:if="${#lists.isEmpty(bookings)}"><div class="card"><div th:replace="~{fragments/components :: empty('&#128197;', 'No bookings yet', 'Book your first service online in a minute.')}"></div></div></th:block>
+  <div class="table-wrap" th:unless="${#lists.isEmpty(bookings)}">
+    <table>
+      <thead><tr><th data-sort>When</th><th>Booking</th><th>Vehicle</th><th>Services</th><th>Status</th></tr></thead>
+      <tbody><tr th:each="b : ${bookings}" class="row-link" th:attr="data-href=@{/portal/bookings/{id}(id=${b.id})}">
+        <td class="nowrap" th:text="${@fmt.dateTime(b.preferredAt)}">date</td>
+        <td><a th:href="@{/portal/bookings/{id}(id=${b.id})}" th:text="${b.bookingNo}">BK</a></td>
+        <td><span class="plate" th:text="${b.vehicle.regNo}">MH12</span></td>
+        <td th:text="${b.serviceNames}">-</td>
+        <td><span th:replace="~{fragments/components :: badge(${b.status})}"></span></td>
+      </tr></tbody></table>
+  </div>
+</main>
+</body>
+</html>

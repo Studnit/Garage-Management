@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/staff :: layout(${booking.bookingNo}, ~{::main}, 'bookings')}">
+<body>
+<main>
+  <div class="page-head">
+    <div class="grow">
+      <div class="crumbs"><a th:href="@{/admin/bookings}">Bookings</a> / <span th:text="${booking.bookingNo}">BK</span></div>
+      <h1><span th:text="${booking.bookingNo}">BK-2026-00001</span> <span th:replace="~{fragments/components :: badge(${booking.status})}"></span></h1>
+      <span class="muted" th:text="${booking.status.description}"></span>
+    </div>
+    <div class="actions">
+      <a class="btn btn-primary" th:if="${job != null}" th:href="@{/admin/jobs/{id}(id=${job.id})}">Open job card</a>
+      <a class="btn btn-outline" th:href="${@fmt.waLink(booking.customer.mobile, 'Hello ' + booking.customer.name + ', this is City Car Services regarding booking ' + booking.bookingNo)}" target="_blank" rel="noopener">WhatsApp</a>
+    </div>
+  </div>
+
+  <div class="card">
+    <div th:replace="~{fragments/components :: timeline(${booking})}"></div>
+  </div>
+
+  <div class="grid g-side">
+    <div>
+      <div class="card">
+        <h2>Booking details</h2>
+        <dl class="kv">
+          <dt>Customer</dt><dd><a th:href="@{/admin/customers/{id}(id=${booking.customer.id})}" th:text="${booking.customer.name}">Name</a>
+            &middot; <a th:href="'tel:+91' + ${booking.customer.mobile}" th:text="${booking.customer.mobile}">98</a></dd>
+          <dt>Vehicle</dt><dd><a th:href="@{/admin/vehicles/{id}(id=${booking.vehicle.id})}"><span class="plate" th:text="${booking.vehicle.regNo}">MH12</span></a>
+            <span th:text="${booking.vehicle.displayName}">Car</span></dd>
+          <dt>Scheduled</dt><dd th:text="${@fmt.dateTime(booking.preferredAt)}">-</dd>
+          <dt>Services</dt><dd th:text="${booking.serviceNames}">-</dd>
+          <dt>Complaint</dt><dd th:text="${booking.complaint != null ? booking.complaint : '-'}">-</dd>
+          <dt>Source</dt><dd th:text="${booking.source.label}">-</dd>
+          <dt>Pickup &amp; drop</dt><dd th:text="${booking.pickupRequired ? 'Yes - ' + booking.pickupAddress : 'No'}">-</dd>
+          <dt th:if="${booking.cancelReason != null}">Cancel reason</dt><dd th:if="${booking.cancelReason != null}" th:text="${booking.cancelReason}"></dd>
+        </dl>
+      </div>
+
+      <div class="card" th:if="${!#lists.isEmpty(pickups)}">
+        <div class="card-head"><h2>Pickup &amp; drop</h2><a class="btn btn-outline btn-sm" th:href="@{/admin/pickups}">Manage</a></div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Type</th><th>Status</th><th>Scheduled</th><th>Driver</th></tr></thead>
+          <tbody><tr th:each="p : ${pickups}">
+            <td th:text="${p.type.label}">Pickup</td>
+            <td><span th:replace="~{fragments/components :: badge(${p.status})}"></span></td>
+            <td th:text="${@fmt.dateTime(p.scheduledAt)}">-</td>
+            <td th:text="${p.driver != null ? p.driver.name : 'Not assigned'}">-</td>
+          </tr></tbody></table></div>
+      </div>
+
+      <div class="card">
+        <h2>Status history</h2>
+        <ul class="log">
+          <li th:each="l : ${booking.logs}">
+            <strong th:text="${l.status.label}">Status</strong>
+            <span class="muted" th:text="${' - ' + @fmt.dateTime(l.changedAt) + (l.changedBy != null ? ' by ' + l.changedBy : '')}"></span>
+            <div th:if="${l.note != null and !l.note.isBlank()}" th:text="${l.note}"></div>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div>
+      <div class="card" th:if="${booking.status.open}">
+        <h2>Next step</h2>
+
+        <!-- Vehicle receiving: capture odometer and fuel level -->
+        <form th:if="${booking.status.name() == 'CONFIRMED'}" th:action="@{/admin/bookings/{id}/receive(id=${booking.id})}" method="post"
+              data-confirm="Receive this vehicle and open the job card?">
+          <div class="field"><label for="odometer">Odometer reading (km) *</label>
+            <input type="number" id="odometer" name="odometer" min="0" required th:value="${booking.vehicle.odometer}"></div>
+          <div class="field"><label for="fuelLevel">Fuel level</label>
+            <select id="fuelLevel" name="fuelLevel"><option>Reserve</option><option>1/4</option><option selected>1/2</option><option>3/4</option><option>Full</option></select></div>
+          <div class="field"><label for="rnotes">Condition notes (scratches, dents, belongings)</label>
+            <textarea id="rnotes" name="notes"></textarea></div>
+          <button class="btn btn-primary btn-block" type="submit">Receive vehicle</button>
+        </form>
+
+        <!-- Quality check -->
+        <form th:if="${booking.status.name() == 'QUALITY_CHECK'}" th:action="@{/admin/bookings/{id}/qc(id=${booking.id})}" method="post">
+          <div class="field"><label for="qcnotes">QC notes (road test, leaks, warning lights)</label>
+            <textarea id="qcnotes" name="notes"></textarea></div>
+          <div class="btn-row">
+            <button class="btn btn-primary" type="submit" name="passed" value="true">QC passed</button>
+            <button class="btn btn-danger" type="submit" name="passed" value="false" data-confirm="Send the vehicle back to In Service for rework?">QC failed</button>
+          </div>
+        </form>
+
+        <!-- Any other step -->
+        <form th:if="${nextStatus != null and booking.status.name() != 'CONFIRMED' and booking.status.name() != 'QUALITY_CHECK'}"
+              th:action="@{/admin/bookings/{id}/status(id=${booking.id})}" method="post">
+          <div class="field"><label for="note">Note (optional)</label><input type="text" id="note" name="note" maxlength="300"></div>
+          <button class="btn btn-primary btn-block" type="submit" th:text="'Move to ' + ${nextStatus.label}">Advance</button>
+        </form>
+      </div>
+
+      <div class="card" th:if="${job != null}">
+        <h2>Job card</h2>
+        <dl class="kv">
+          <dt>Job no.</dt><dd><a th:href="@{/admin/jobs/{id}(id=${job.id})}" th:text="${job.jobNo}">JC</a></dd>
+          <dt>Status</dt><dd><span th:replace="~{fragments/components :: badge(${job.status})}"></span></dd>
+          <dt>Mechanic</dt><dd th:text="${job.mechanic != null ? job.mechanic.user.fullName : 'Not assigned'}">-</dd>
+          <dt>Invoice</dt><dd><a th:if="${job.invoice != null}" th:href="@{/admin/invoices/{id}(id=${job.invoice.id})}" th:text="${job.invoice.invoiceNo}">INV</a>
+            <span th:if="${job.invoice == null}">Not generated</span></dd>
+        </dl>
+      </div>
+
+      <div class="card" th:if="${booking.status.open and booking.status.name() != 'READY' and booking.status.name() != 'DELIVERED'}">
+        <h2>Reschedule or cancel</h2>
+        <form th:action="@{/admin/bookings/{id}/reschedule(id=${booking.id})}" method="post" th:if="${!booking.status.inGarage}">
+          <div class="field"><label for="when">New date &amp; time</label>
+            <input type="datetime-local" id="when" name="when" th:value="${@fmt.inputDateTime(booking.preferredAt)}" required></div>
+          <button class="btn btn-outline" type="submit">Reschedule</button>
+        </form>
+        <form th:action="@{/admin/bookings/{id}/cancel(id=${booking.id})}" method="post" class="mt" data-confirm="Cancel this booking? This cannot be undone.">
+          <div class="field"><label for="reason">Reason</label><input type="text" id="reason" name="reason" maxlength="300"></div>
+          <button class="btn btn-danger" type="submit">Cancel booking</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</main>
+</body>
+</html>

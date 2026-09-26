@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/staff :: layout('Payments to verify', ~{::main}, 'invoices')}">
+<body>
+<main>
+  <div class="page-head"><div class="grow"><h1>Payments awaiting verification</h1>
+    <span class="muted">Online payments reported by customers. Check your bank / UPI statement, then accept or reject.</span></div>
+    <div class="actions"><a class="btn btn-outline" th:href="@{/admin/invoices}">Invoices</a></div></div>
+  <th:block th:if="${#lists.isEmpty(payments)}"><div th:replace="~{fragments/components :: empty('&#9989;', 'Nothing to verify', 'All customer-submitted payments have been reviewed.')}"></div></th:block>
+  <div class="table-wrap" th:unless="${#lists.isEmpty(payments)}">
+    <table>
+      <thead><tr><th>Receipt</th><th>Submitted</th><th>Customer</th><th>Invoice</th><th>Mode</th><th>Reference</th><th class="num">Amount</th><th></th></tr></thead>
+      <tbody>
+        <tr th:each="p : ${payments}">
+          <td class="mono" th:text="${p.receiptNo}">RCT</td>
+          <td class="nowrap" th:text="${@fmt.dateTime(p.paidAt)}">-</td>
+          <td th:text="${p.jobCard.customer.name}">Customer</td>
+          <td><a th:if="${p.invoice != null}" th:href="@{/admin/invoices/{id}(id=${p.invoice.id})}" th:text="${p.invoice.invoiceNo}">INV</a>
+              <a th:if="${p.invoice == null}" th:href="@{/admin/jobs/{id}(id=${p.jobCard.id})}" th:text="${p.jobCard.jobNo}">JC</a></td>
+          <td th:text="${p.mode.label}">UPI</td>
+          <td th:text="${p.reference != null ? p.reference : '-'}">-</td>
+          <td class="num" th:text="${@fmt.plain(p.amount)}">0</td>
+          <td class="right nowrap">
+            <form th:action="@{/admin/payments/{id}/verify(id=${p.id})}" method="post" style="display:inline">
+              <button class="btn btn-primary btn-sm" type="submit" name="accept" value="true" data-confirm="Confirm the money has been received?">Accept</button>
+              <button class="btn btn-outline btn-sm" type="submit" name="accept" value="false" data-confirm="Reject this payment?">Reject</button>
+            </form>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</main>
+</body>
+</html>

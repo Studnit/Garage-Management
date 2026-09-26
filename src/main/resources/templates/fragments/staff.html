@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:fragment="layout(title, content, active)" lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title th:text="${title} + ' | ' + ${garage.name}">Page | City Car Services</title>
+  <link rel="icon" type="image/svg+xml" th:href="@{/img/favicon.svg}">
+  <link rel="stylesheet" th:href="@{/css/app.css}">
+  <script th:src="@{/js/app.js}" defer></script>
+</head>
+<body class="app">
+<div class="shell">
+  <aside class="sidebar" id="sidebar" aria-label="Main navigation">
+    <a class="brand" th:href="@{/admin}">
+      <svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="22" fill="none" stroke="currentColor" stroke-width="6"/><circle cx="32" cy="32" r="6" fill="#f97316"/><g stroke="#f97316" stroke-width="4" stroke-linecap="round"><path d="M32 10v10M32 44v10M10 32h10M44 32h10"/></g></svg>
+      <div><b th:text="${garage.name}">City Car Services</b><span>Garage Management</span></div>
+    </a>
+    <nav class="nav">
+      <a th:href="@{/admin}" th:classappend="${active == 'dashboard'} ? 'active'"><span class="ico">&#128200;</span>Dashboard</a>
+
+      <div sec:authorize="hasAnyRole('SUPER_ADMIN','GARAGE_MANAGER','SERVICE_ADVISOR')">
+        <h4>Front desk</h4>
+        <a th:href="@{/admin/bookings}" th:classappend="${active == 'bookings'} ? 'active'"><span class="ico">&#128197;</span>Bookings</a>
+        <a th:href="@{/admin/customers}" th:classappend="${active == 'customers'} ? 'active'"><span class="ico">&#128101;</span>Customers</a>
+        <a th:href="@{/admin/pickups}" th:classappend="${active == 'pickups'} ? 'active'"><span class="ico">&#128666;</span>Pickup &amp; Drop</a>
+        <a th:href="@{/admin/reminders}" th:classappend="${active == 'reminders'} ? 'active'"><span class="ico">&#128276;</span>Reminders</a>
+      </div>
+
+      <div sec:authorize="hasAnyRole('SUPER_ADMIN','GARAGE_MANAGER','SERVICE_ADVISOR','MECHANIC','ACCOUNTANT')">
+        <h4>Workshop</h4>
+        <a th:href="@{/admin/jobs}" th:classappend="${active == 'jobs'} ? 'active'"><span class="ico">&#128295;</span>Job cards</a>
+        <a th:href="@{/admin/vehicles}" th:classappend="${active == 'vehicles'} ? 'active'"><span class="ico">&#128663;</span>Vehicles</a>
+      </div>
+      <div sec:authorize="hasAnyRole('SUPER_ADMIN','GARAGE_MANAGER','SERVICE_ADVISOR')">
+        <a th:href="@{/admin/mechanics}" th:classappend="${active == 'mechanics'} ? 'active'"><span class="ico">&#128119;</span>Mechanics</a>
+      </div>
+
+      <div sec:authorize="hasAnyRole('SUPER_ADMIN','GARAGE_MANAGER','SERVICE_ADVISOR','MECHANIC','INVENTORY_MANAGER')">
+        <h4>Inventory</h4>
+        <a th:href="@{/admin/inventory}" th:classappend="${active == 'inventory'} ? 'active'"><span class="ico">&#128230;</span>Spare parts</a>
+      </div>
+      <div sec:authorize="hasAnyRole('SUPER_ADMIN','GARAGE_MANAGER','INVENTORY_MANAGER')">
+        <a th:href="@{/admin/suppliers}" th:classappend="${active == 'suppliers'} ? 'active'"><span class="ico">&#127981;</span>Suppliers</a>
+      </div>
+
+      <div sec:authorize="hasAnyRole('SUPER_ADMIN','GARAGE_MANAGER','SERVICE_ADVISOR','ACCOUNTANT')">
+        <h4>Billing</h4>
+        <a th:href="@{/admin/invoices}" th:classappend="${active == 'invoices'} ? 'active'"><span class="ico">&#129534;</span>Invoices</a>
+        <a th:href="@{/admin/payments}" th:classappend="${active == 'payments'} ? 'active'"><span class="ico">&#128179;</span>Verify payments</a>
+      </div>
+
+      <div sec:authorize="hasAnyRole('SUPER_ADMIN','GARAGE_MANAGER','ACCOUNTANT','INVENTORY_MANAGER')">
+        <h4>Insights</h4>
+        <a th:href="@{/admin/reports}" th:classappend="${active == 'reports'} ? 'active'"><span class="ico">&#128202;</span>Reports</a>
+      </div>
+      <div sec:authorize="hasAnyRole('SUPER_ADMIN','GARAGE_MANAGER','SERVICE_ADVISOR')">
+        <a th:href="@{/admin/feedback}" th:classappend="${active == 'feedback'} ? 'active'"><span class="ico">&#11088;</span>Reviews</a>
+      </div>
+
+      <div sec:authorize="hasAnyRole('SUPER_ADMIN','GARAGE_MANAGER')">
+        <h4>Setup</h4>
+        <a th:href="@{/admin/services}" th:classappend="${active == 'services'} ? 'active'"><span class="ico">&#128736;</span>Service catalogue</a>
+      </div>
+      <div sec:authorize="hasRole('SUPER_ADMIN')">
+        <a th:href="@{/admin/users}" th:classappend="${active == 'users'} ? 'active'"><span class="ico">&#128100;</span>Users &amp; roles</a>
+        <a th:href="@{/admin/audit}" th:classappend="${active == 'audit'} ? 'active'"><span class="ico">&#128220;</span>Audit log</a>
+      </div>
+    </nav>
+    <div class="sidebar-foot">
+      <span th:text="${garage.hoursText}">Hours</span><br>
+      <a th:href="${garage.phoneLink}" style="color:#fff" th:text="${garage.phone}">+91</a>
+    </div>
+  </aside>
+  <div class="backdrop" data-toggle-nav></div>
+
+  <div class="main">
+    <header class="topbar">
+      <button class="hamburger" type="button" data-toggle-nav aria-label="Open menu">&#9776;</button>
+      <strong th:text="${title}">Title</strong>
+      <span class="spacer"></span>
+      <div class="user-chip" th:if="${me != null}">
+        <span class="avatar" th:text="${@fmt.initials(me.fullName)}">AB</span>
+        <span class="who"><strong th:text="${me.fullName}">Name</strong><small th:text="${me.role.label}">Role</small></span>
+      </div>
+      <a class="btn btn-outline btn-sm" th:href="@{/account/password}">Password</a>
+      <form th:action="@{/logout}" method="post" class="inline" data-no-loading>
+        <button type="submit" class="btn btn-sm">Sign out</button>
+      </form>
+    </header>
+    <div class="content">
+      <div th:replace="~{fragments/components :: flash}"></div>
+      <th:block th:replace="${content}">Page content</th:block>
+    </div>
+  </div>
+</div>
+<div class="toasts" id="toasts" aria-live="polite"></div>
+</body>
+</html>

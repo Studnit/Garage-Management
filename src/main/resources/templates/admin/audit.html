@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/staff :: layout('Audit log', ~{::main}, 'audit')}">
+<body>
+<main>
+  <div class="page-head"><div class="grow"><h1>Audit log</h1><span class="muted">Most recent 300 security and business events</span></div></div>
+  <div class="filters"><div class="field grow search"><label for="q">Filter</label><input type="text" id="q" placeholder="Filter entries..." data-filter="#auditTable"></div></div>
+  <th:block th:if="${#lists.isEmpty(entries)}"><div th:replace="~{fragments/components :: empty('&#128220;', 'No entries yet', 'Actions will be recorded here.')}"></div></th:block>
+  <div class="table-wrap" th:unless="${#lists.isEmpty(entries)}">
+    <table id="auditTable">
+      <thead><tr><th>When</th><th>User</th><th>Action</th><th>Detail</th></tr></thead>
+      <tbody><tr th:each="e : ${entries}">
+        <td class="nowrap" th:text="${@fmt.dateTime(e.createdAt)}">-</td>
+        <td th:text="${e.actor}">-</td>
+        <td><span class="badge b-gray" th:text="${e.action}">ACTION</span></td>
+        <td th:text="${e.detail}">-</td>
+      </tr></tbody>
+    </table>
+  </div>
+</main>
+</body>
+</html>

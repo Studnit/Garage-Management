@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/site :: layout('My dashboard', ~{::main}, 'p-dashboard')}">
+<body>
+<main>
+  <div class="page-head">
+    <div class="grow"><h1 th:text="'Welcome, ' + ${customer.name}">Welcome</h1><span class="muted">Track your vehicles, approve estimates and pay online.</span></div>
+    <div class="actions"><a class="btn btn-primary" th:href="@{/portal/bookings/new}">Book a service</a></div>
+  </div>
+
+  <div class="alert alert-warn" th:each="a : ${alerts}" th:classappend="${a[0] == 'danger'} ? 'alert-danger'">
+    <a th:href="@{/portal/vehicles/{id}(id=${a[2]})}" th:text="${a[1]}">Alert</a>
+  </div>
+
+  <div class="card" th:if="${!#lists.isEmpty(pendingEstimates)}">
+    <h2>Estimates waiting for your approval</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Estimate</th><th>Vehicle</th><th class="num">Amount</th><th></th></tr></thead>
+      <tbody><tr th:each="e : ${pendingEstimates}">
+        <td th:text="${e.estimateNo}">EST</td>
+        <td><span class="plate" th:text="${e.jobCard.vehicle.regNo}">MH12</span></td>
+        <td class="num" th:text="${@fmt.money(e.grandTotal)}">0</td>
+        <td class="right"><a class="btn btn-primary btn-sm" th:href="@{/portal/estimates/{id}(id=${e.id})}">Review &amp; approve</a></td>
+      </tr></tbody></table></div>
+  </div>
+
+  <div class="card" th:if="${!#lists.isEmpty(unpaidInvoices)}">
+    <h2>Invoices to pay</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Invoice</th><th>Date</th><th class="num">Balance</th><th></th></tr></thead>
+      <tbody><tr th:each="i : ${unpaidInvoices}">
+        <td th:text="${i.invoiceNo}">INV</td><td th:text="${@fmt.date(i.invoiceDate)}">date</td>
+        <td class="num" th:text="${@fmt.money(i.balance)}">0</td>
+        <td class="right"><a class="btn btn-primary btn-sm" th:href="@{/portal/invoices/{id}(id=${i.id})}">View &amp; pay</a></td>
+      </tr></tbody></table></div>
+  </div>
+
+  <h2>Current services</h2>
+  <th:block th:if="${#lists.isEmpty(activeBookings)}"><div class="card"><div th:replace="~{fragments/components :: empty('&#128663;', 'No active bookings', 'Book a service and follow its progress here.')}"></div></div></th:block>
+  <div class="card" th:each="b : ${activeBookings}">
+    <div class="card-head"><h3><a th:href="@{/portal/bookings/{id}(id=${b.id})}" th:text="${b.bookingNo}">BK</a>
+      <span class="plate" th:text="${b.vehicle.regNo}">MH12</span></h3>
+      <span th:replace="~{fragments/components :: badge(${b.status})}"></span></div>
+    <div th:replace="~{fragments/components :: timeline(${b})}"></div>
+    <p class="muted" th:text="${b.serviceNames + ' - ' + @fmt.dateTime(b.preferredAt)}"></p>
+  </div>
+
+  <div class="card-head"><h2>My vehicles</h2><a class="btn btn-outline btn-sm" th:href="@{/portal/vehicles/new}">+ Add vehicle</a></div>
+  <div class="grid g3 mb">
+    <div class="vehicle-card" th:each="v : ${vehicles}">
+      <div class="vc-head"><span class="plate" th:text="${v.regNo}">MH12</span><small th:text="${v.displayName}">Car</small></div>
+      <div class="vc-body"><dl class="kv" style="grid-template-columns:110px 1fr">
+        <dt>Odometer</dt><dd th:text="${v.odometer} + ' km'">-</dd>
+        <dt>Next service</dt><dd><span th:replace="~{fragments/components :: expiry(${v.nextServiceDate})}"></span></dd>
+        <dt>Insurance</dt><dd><span th:replace="~{fragments/components :: expiry(${v.insuranceExpiry})}"></span></dd>
+      </dl></div>
+      <div class="vc-foot"><a class="btn btn-outline btn-sm" th:href="@{/portal/vehicles/{id}(id=${v.id})}">Details</a>
+        <a class="btn btn-primary btn-sm" th:href="@{/portal/bookings/new(vehicleId=${v.id})}">Book service</a></div>
+    </div>
+  </div>
+  <th:block th:if="${#lists.isEmpty(vehicles)}"><div class="card"><div th:replace="~{fragments/components :: empty('&#128663;', 'Add your first vehicle', 'Add your car to book services and keep its history.')}"></div></div></th:block>
+
+  <div class="card" th:if="${!#lists.isEmpty(recentBookings)}">
+    <h2>Recent bookings</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Date</th><th>Booking</th><th>Vehicle</th><th>Services</th><th>Status</th></tr></thead>
+      <tbody><tr th:each="b : ${recentBookings}" class="row-link" th:attr="data-href=@{/portal/bookings/{id}(id=${b.id})}">
+        <td th:text="${@fmt.date(b.preferredAt.toLocalDate())}">date</td>
+        <td><a th:href="@{/portal/bookings/{id}(id=${b.id})}" th:text="${b.bookingNo}">BK</a></td>
+        <td th:text="${b.vehicle.regNo}">MH12</td><td th:text="${b.serviceNames}">-</td>
+        <td><span th:replace="~{fragments/components :: badge(${b.status})}"></span></td>
+      </tr></tbody></table></div>
+  </div>
+</main>
+</body>
+</html>

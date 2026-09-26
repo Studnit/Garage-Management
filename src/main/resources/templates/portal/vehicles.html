@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/site :: layout('My vehicles', ~{::main}, 'p-vehicles')}">
+<body>
+<main>
+  <div class="page-head"><div class="grow"><h1>My vehicles</h1></div>
+    <div class="actions"><a class="btn btn-primary" th:href="@{/portal/vehicles/new}">+ Add vehicle</a></div></div>
+  <th:block th:if="${#lists.isEmpty(vehicles)}"><div class="card"><div th:replace="~{fragments/components :: empty('&#128663;', 'No vehicles yet', 'Add your car to book a service.')}"></div></div></th:block>
+  <div class="grid g3">
+    <div class="vehicle-card" th:each="v : ${vehicles}">
+      <div class="vc-head"><span class="plate" th:text="${v.regNo}">MH12</span><small th:text="${v.displayName + (v.mfgYear != null ? ' (' + v.mfgYear + ')' : '')}">Car</small></div>
+      <div class="vc-body"><dl class="kv" style="grid-template-columns:110px 1fr">
+        <dt>Fuel</dt><dd th:text="${v.fuelType.label}">-</dd>
+        <dt>Odometer</dt><dd th:text="${v.odometer} + ' km'">-</dd>
+        <dt>Insurance</dt><dd><span th:replace="~{fragments/components :: expiry(${v.insuranceExpiry})}"></span></dd>
+        <dt>PUC</dt><dd><span th:replace="~{fragments/components :: expiry(${v.pucExpiry})}"></span></dd>
+        <dt>Next service</dt><dd><span th:replace="~{fragments/components :: expiry(${v.nextServiceDate})}"></span></dd>
+      </dl></div>
+      <div class="vc-foot"><a class="btn btn-outline btn-sm" th:href="@{/portal/vehicles/{id}(id=${v.id})}">Details</a>
+        <a class="btn btn-primary btn-sm" th:href="@{/portal/bookings/new(vehicleId=${v.id})}">Book service</a></div>
+    </div>
+  </div>
+</main>
+</body>
+</html>

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/staff :: layout('Mechanics', ~{::main}, 'mechanics')}">
+<body>
+<main>
+  <div class="page-head">
+    <div class="grow"><h1>Mechanics</h1><span class="muted">Workload and performance this month</span></div>
+    <div class="actions"><a class="btn btn-primary" th:href="@{/admin/mechanics/new}">+ Add mechanic</a></div>
+  </div>
+  <th:block th:if="${#lists.isEmpty(stats)}"><div th:replace="~{fragments/components :: empty('&#128119;', 'No mechanics yet', 'Add your mechanics to assign them to job cards.')}"></div></th:block>
+  <div class="table-wrap" th:unless="${#lists.isEmpty(stats)}">
+    <table>
+      <thead><tr><th data-sort>Mechanic</th><th data-sort>Specialisation</th><th class="num" data-sort>Open jobs</th><th class="num" data-sort>Completed</th><th class="num" data-sort>Hours logged</th><th class="num" data-sort>Labour billed</th><th class="num" data-sort>Productivity</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr th:each="s : ${stats}" class="row-link" th:attr="data-href=@{/admin/mechanics/{id}(id=${s.mechanic.id})}">
+          <td><a th:href="@{/admin/mechanics/{id}(id=${s.mechanic.id})}" th:text="${s.mechanic.user.fullName}">Name</a>
+            <br><small class="muted mono" th:text="${s.mechanic.employeeCode}">EMP</small></td>
+          <td th:text="${s.mechanic.specialization != null ? s.mechanic.specialization : '-'}">-</td>
+          <td class="num" th:text="${s.openJobs}">0</td>
+          <td class="num" th:text="${s.completedJobs}">0</td>
+          <td class="num" th:text="${@fmt.qty(s.actualHours)}">0</td>
+          <td class="num" th:text="${@fmt.plain(s.labourBilled)}">0</td>
+          <td class="num" th:text="${s.productivityPct} + '%'">0%</td>
+          <td><span class="badge" th:classappend="${s.mechanic.active} ? 'b-green' : 'b-gray'" th:text="${s.mechanic.active} ? 'Active' : 'Inactive'">Active</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</main>
+</body>
+</html>

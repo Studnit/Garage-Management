@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<body>
+
+<!-- Vehicle fields; use inside a form with th:object -->
+<div th:fragment="vehicleFields(fuelTypes)" class="form-grid">
+  <div th:replace="~{fragments/components :: input('Vehicle number * (e.g. MH12AB1234)', 'regNo', 'text')}"></div>
+  <div th:replace="~{fragments/components :: input('Make / brand *', 'make', 'text')}"></div>
+  <div th:replace="~{fragments/components :: input('Model *', 'model', 'text')}"></div>
+  <div th:replace="~{fragments/components :: input('Variant', 'variant', 'text')}"></div>
+  <div th:replace="~{fragments/components :: input('Manufacturing year', 'mfgYear', 'number')}"></div>
+  <div th:replace="~{fragments/components :: select('Fuel type', 'fuelType', ${fuelTypes})}"></div>
+  <div th:replace="~{fragments/components :: input('Odometer reading (km) *', 'odometer', 'number')}"></div>
+  <div th:replace="~{fragments/components :: input('VIN / chassis number', 'vin', 'text')}"></div>
+  <div th:replace="~{fragments/components :: input('Engine number', 'engineNo', 'text')}"></div>
+  <div th:replace="~{fragments/components :: input('Colour', 'color', 'text')}"></div>
+  <h3 class="full mt-0">Insurance &amp; compliance</h3>
+  <div th:replace="~{fragments/components :: input('Insurance company', 'insurer', 'text')}"></div>
+  <div th:replace="~{fragments/components :: input('Policy number', 'policyNo', 'text')}"></div>
+  <div th:replace="~{fragments/components :: input('Insurance expiry date', 'insuranceExpiry', 'date')}"></div>
+  <div th:replace="~{fragments/components :: input('PUC expiry date', 'pucExpiry', 'date')}"></div>
+  <h3 class="full mt-0">Service schedule</h3>
+  <div th:replace="~{fragments/components :: input('Next service date', 'nextServiceDate', 'date')}"></div>
+  <div th:replace="~{fragments/components :: input('Next service at (km)', 'nextServiceKm', 'number')}"></div>
+  <div class="full" th:replace="~{fragments/components :: textarea('Notes', 'notes')}"></div>
+</div>
+
+<!-- Booking fields (vehicle, services, time, pickup, complaint) -->
+<div th:fragment="bookingFields(vehicles, services)" class="form-grid">
+  <div class="field full" th:classappend="${#fields.hasErrors('vehicleId')} ? 'has-error'">
+    <label for="vehicleId">Vehicle *</label>
+    <select th:field="*{vehicleId}">
+      <option value="">Select a vehicle</option>
+      <option th:each="v : ${vehicles}" th:value="${v.id}" th:text="${v.regNo + ' - ' + v.displayName}">MH12 - Car</option>
+    </select>
+    <span class="err" th:if="${#fields.hasErrors('vehicleId')}" th:errors="*{vehicleId}">error</span>
+  </div>
+  <div class="full">
+    <span class="label">Services needed *</span>
+    <div class="picks mt-0">
+      <label class="pick" th:each="s : ${services}">
+        <input type="checkbox" name="serviceIds" th:value="${s.id}"
+               th:checked="${form.serviceIds != null and form.serviceIds.contains(s.id)}">
+        <span><strong th:text="${(s.icon != null ? s.icon + ' ' : '') + s.name}">Service</strong><br>
+          <small class="muted" th:if="${s.basePrice.signum() > 0}" th:text="'from ' + ${@fmt.money(s.basePrice)} + ' + GST'"></small>
+          <small class="muted" th:if="${s.basePrice.signum() == 0}">Quoted after inspection</small></span>
+      </label>
+    </div>
+  </div>
+  <div th:replace="~{fragments/components :: input('Preferred date &amp; time *', 'preferredAt', 'datetime-local')}"></div>
+  <div class="field">
+    <span class="label">Pickup &amp; drop</span>
+    <label class="check"><input type="checkbox" th:field="*{pickupRequired}"> Pick up my car from my address and drop it back</label>
+  </div>
+  <div class="field full" id="pickupAddressField" th:classappend="${#fields.hasErrors('pickupAddress')} ? 'has-error'">
+    <label for="pickupAddress">Pickup / drop address</label>
+    <textarea th:field="*{pickupAddress}" placeholder="House / building, area, landmark"></textarea>
+    <span class="err" th:if="${#fields.hasErrors('pickupAddress')}" th:errors="*{pickupAddress}">error</span>
+  </div>
+  <div class="full" th:replace="~{fragments/components :: textarea('Describe the problem or any special request', 'complaint')}"></div>
+</div>
+
+</body>
+</html>

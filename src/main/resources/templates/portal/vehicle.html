@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/site :: layout(${vehicle.regNo}, ~{::main}, 'p-vehicles')}">
+<body>
+<main>
+  <div class="page-head">
+    <div class="grow"><div class="crumbs"><a th:href="@{/portal/vehicles}">My vehicles</a></div>
+      <h1><span class="plate" th:text="${vehicle.regNo}">MH12</span> <small th:text="${vehicle.displayName}">Car</small></h1></div>
+    <div class="actions"><a class="btn btn-primary" th:href="@{/portal/bookings/new(vehicleId=${vehicle.id})}">Book service</a>
+      <a class="btn btn-outline" th:href="@{/portal/vehicles/{id}/edit(id=${vehicle.id})}">Edit</a></div>
+  </div>
+  <div class="grid g2">
+    <div class="card"><h2>Vehicle details</h2><dl class="kv">
+      <dt>Make / model</dt><dd th:text="${vehicle.make + ' ' + vehicle.model + (vehicle.variant != null ? ' ' + vehicle.variant : '')}">-</dd>
+      <dt>Year</dt><dd th:text="${vehicle.mfgYear != null ? vehicle.mfgYear : '-'}">-</dd>
+      <dt>Fuel</dt><dd th:text="${vehicle.fuelType.label}">-</dd>
+      <dt>Odometer</dt><dd th:text="${vehicle.odometer} + ' km'">-</dd>
+      <dt>Colour</dt><dd th:text="${vehicle.color != null ? vehicle.color : '-'}">-</dd></dl></div>
+    <div class="card"><h2>Insurance, PUC &amp; service</h2><dl class="kv">
+      <dt>Insurer</dt><dd th:text="${vehicle.insurer != null ? vehicle.insurer : '-'}">-</dd>
+      <dt>Insurance expiry</dt><dd><span th:replace="~{fragments/components :: expiry(${vehicle.insuranceExpiry})}"></span></dd>
+      <dt>PUC expiry</dt><dd><span th:replace="~{fragments/components :: expiry(${vehicle.pucExpiry})}"></span></dd>
+      <dt>Last service</dt><dd th:text="${@fmt.date(vehicle.lastServiceDate)}">-</dd>
+      <dt>Next service</dt><dd><span th:replace="~{fragments/components :: expiry(${vehicle.nextServiceDate})}"></span>
+        <span th:if="${vehicle.nextServiceKm != null}" th:text="' or at ' + ${vehicle.nextServiceKm} + ' km'"></span></dd></dl></div>
+  </div>
+  <div class="card"><h2>Service history</h2>
+    <th:block th:if="${#lists.isEmpty(history)}"><div th:replace="~{fragments/components :: empty('&#128203;', 'No service history yet', 'Your visits will be listed here.')}"></div></th:block>
+    <div class="table-wrap" th:unless="${#lists.isEmpty(history)}"><table>
+      <thead><tr><th>Date</th><th>Booking</th><th>Services</th><th>Status</th><th class="num">Invoice</th></tr></thead>
+      <tbody><tr th:each="b : ${history}" class="row-link" th:attr="data-href=@{/portal/bookings/{id}(id=${b.id})}">
+        <td th:text="${@fmt.date(b.preferredAt.toLocalDate())}">date</td>
+        <td><a th:href="@{/portal/bookings/{id}(id=${b.id})}" th:text="${b.bookingNo}">BK</a></td>
+        <td th:text="${b.serviceNames}">-</td>
+        <td><span th:replace="~{fragments/components :: badge(${b.status})}"></span></td>
+        <td class="num" th:text="${b.jobCard != null and b.jobCard.invoice != null ? @fmt.money(b.jobCard.invoice.total) : '-'}">-</td>
+      </tr></tbody></table></div></div>
+</main>
+</body>
+</html>

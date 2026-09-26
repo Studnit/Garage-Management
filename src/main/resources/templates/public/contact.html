@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/site :: layout('Contact & location', ~{::main}, 'contact')}">
+<body>
+<main class="section">
+  <h1>Contact &amp; location</h1>
+  <div class="grid g2 mt">
+    <div class="card">
+      <h2 th:text="${garage.name}">City Car Services</h2>
+      <dl class="kv">
+        <dt>Address</dt><dd th:text="${garage.address}">Address</dd>
+        <dt>Phone</dt><dd><a th:href="${garage.phoneLink}" th:text="${garage.phone}">+91</a></dd>
+        <dt>WhatsApp</dt><dd><a th:href="${garage.whatsappLink}" target="_blank" rel="noopener">Message us on WhatsApp</a></dd>
+        <dt>Working hours</dt><dd th:text="${garage.hoursText}">Hours</dd>
+        <dt>Email</dt><dd th:if="${!garage.email.isEmpty()}"><a th:href="'mailto:' + ${garage.email}" th:text="${garage.email}"></a></dd>
+        <dt>Business</dt><dd>Multi-brand automobile repair and service centre</dd>
+      </dl>
+      <div class="btn-row mt">
+        <a class="btn btn-primary" th:href="${garage.mapUrl}" target="_blank" rel="noopener">&#128205; Open in Maps</a>
+        <a class="btn btn-outline" th:href="${garage.phoneLink}">&#128222; Call now</a>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Breakdown or emergency?</h2>
+      <p>Call us at <a th:href="${garage.phoneLink}" th:text="${garage.phone}">+91</a> for on-road assistance.
+         Include your location and vehicle number, and we will guide you.</p>
+      <p class="muted">Free pickup &amp; drop is available on request when you book a service online.</p>
+    </div>
+  </div>
+</main>
+</body>
+</html>

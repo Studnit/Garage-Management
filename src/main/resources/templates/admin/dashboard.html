@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{fragments/staff :: layout('Dashboard', ~{::main}, 'dashboard')}">
+<body>
+<main>
+  <div class="page-head">
+    <div class="grow">
+      <h1>Garage dashboard</h1>
+      <span class="muted" th:text="${@fmt.date(today)} + ' - ' + ${garage.hoursText}">Today</span>
+    </div>
+    <div class="actions" sec:authorize="hasAnyRole('SUPER_ADMIN','GARAGE_MANAGER','SERVICE_ADVISOR')">
+      <a class="btn btn-primary" th:href="@{/admin/bookings/new}">+ New booking</a>
+      <a class="btn btn-outline" th:href="@{/admin/customers/new}">+ New customer</a>
+    </div>
+  </div>
+
+  <!-- Needs attention -->
+  <div class="grid g4 mb" sec:authorize="hasAnyRole('SUPER_ADMIN','GARAGE_MANAGER','SERVICE_ADVISOR')">
+    <a class="tile amber" th:href="@{/admin/bookings(status='PENDING')}">
+      <div class="label">New bookings to confirm</div><div class="value" th:text="${d.newBookings}">0</div></a>
+    <a class="tile blue" th:href="@{/admin/jobs(active=true)}">
+      <div class="label">Estimates awaiting customer</div><div class="value" th:text="${d.pendingEstimates}">0</div></a>
+    <a class="tile dark" th:href="@{/admin/pickups}">
+      <div class="label">Open pickup / drop requests</div><div class="value" th:text="${d.openPickups}">0</div></a>
+    <a class="tile red" th:href="@{/admin/reminders(status='PENDING')}">
+      <div class="label">Reminders to send</div><div class="value" th:text="${d.pendingReminders}">0</div></a>
+  </div>
+
+  <div class="grid g4 mb">
+    <a class="tile" th:href="@{/admin/bookings}" sec:authorize="hasAnyRole('SUPER_ADMIN','GARAGE_MANAGER','SERVICE_ADVISOR')">
+      <div class="label">Today's appointments</div><div class="value" th:text="${#lists.size(d.todaysAppointments)}">0</div></a>
+    <a class="tile blue" th:href="@{/admin/jobs(active=true)}">
+      <div class="label">Vehicles in garage</div><div class="value" th:text="${#lists.size(d.inGarage)}">0</div></a>
+    <a class="tile amber" th:href="@{/admin/jobs(active=true)}">
+      <div class="label">Pending jobs</div><div class="value" th:text="${d.pendingJobs}">0</div>
+      <div class="sub">Received, inspection, in service, QC</div></a>
+    <a class="tile green" th:href="@{/admin/jobs(status='READY')}">
+      <div class="label">Ready for delivery</div><div class="value" th:text="${#lists.size(d.readyForDelivery)}">0</div></a>
+    <div class="tile green"><div class="label">Completed jobs (this month)</div><div class="value" th:text="${d.completedJobsThisMonth}">0</div></div>
+    <th:block sec:authorize="hasAnyRole('SUPER_ADMIN','GARAGE_MANAGER','ACCOUNTANT')">
+      <div class="tile green"><div class="label">Today's revenue</div><div class="value" th:text="${@fmt.money(d.todayRevenue)}">0</div>
+        <div class="sub" th:text="'Billed today: ' + ${@fmt.money(d.todayBilled)}"></div></div>
+      <a class="tile red" th:href="@{/admin/reports/pending}"><div class="label">Pending payments</div>
+        <div class="value" th:text="${@fmt.money(d.pendingPaymentsTotal)}">0</div>
+        <div class="sub" th:text="${d.pendingPaymentsCount} + ' invoice(s)'"></div></a>
+      <div class="tile blue"><div class="label">This month's revenue</div><div class="value" th:text="${@fmt.money(d.monthRevenue)}">0</div></div>
+    </th:block>
+    <a class="tile red" th:href="@{/admin/inventory(low=true)}" sec:authorize="hasAnyRole('SUPER_ADMIN','GARAGE_MANAGER','INVENTORY_MANAGER')">
+      <div class="label">Low-stock parts</div><div class="value" th:text="${#lists.size(d.lowStock)}">0</div></a>
+  </div>
+
+  <!-- Mechanic: my jobs -->
+  <div class="card" th:if="${myJobs != null}">
+    <div class="card-head"><h2>My jobs in the garage</h2><a class="btn btn-outline btn-sm" th:href="@{/admin/jobs}">All my jobs</a></div>
+    <th:block th:if="${#lists.isEmpty(myJobs)}"><div th:replace="~{fragments/components :: empty('&#128295;', 'No jobs assigned', 'New jobs will appear here when an advisor assigns them to you.')}"></div></th:block>
+    <div class="table-wrap" th:unless="${#lists.isEmpty(myJobs)}">
+      <table>
+        <thead><tr><th>Job card</th><th>Vehicle</th><th>Complaint</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr th:each="j : ${myJobs}" class="row-link" th:attr="data-href=@{/admin/jobs/{id}(id=${j.id})}">
+            <td><a th:href="@{/admin/jobs/{id}(id=${j.id})}" th:text="${j.jobNo}">JC</a></td>
+            <td><strong th:text="${j.vehicle.regNo}">MH12</strong><br><small th:text="${j.vehicle.displayName}">Car</small></td>
+            <td th:text="${j.complaint}">Complaint</td>
+            <td><span th:replace="~{fragments/components :: badge(${j.booking.status})}"></span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="grid g-side">
+    <div>
+      <div class="card" sec:authorize="hasAnyRole('SUPER_ADMIN','GARAGE_MANAGER','SERVICE_ADVISOR')">
+        <div class="card-head"><h2>Today's appointments</h2><a class="btn btn-outline btn-sm" th:href="@{/admin/bookings}">All bookings</a></div>
+        <th:block th:if="${#lists.isEmpty(d.todaysAppointments)}"><div th:replace="~{fragments/components :: empty('&#128197;', 'No appointments today', 'Bookings scheduled for today will show up here.')}"></div></th:block>
+        <div class="table-wrap" th:unless="${#lists.isEmpty(d.todaysAppointments)}">
+          <table>
+            <thead><tr><th>Time</th><th>Customer</th><th>Vehicle</th><th>Services</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr th:each="b : ${d.todaysAppointments}" class="row-link" th:attr="data-href=@{/admin/bookings/{id}(id=${b.id})}">
+                <td class="nowrap" th:text="${@fmt.time(b.preferredAt)}">10:00</td>
+                <td><span th:text="${b.customer.name}">Name</span><br><small th:text="${b.customer.mobile}">98</small></td>
+                <td><strong th:text="${b.vehicle.regNo}">MH</strong><br><small th:text="${b.vehicle.displayName}">Car</small></td>
+                <td th:text="${b.serviceNames}">Services</td>
+                <td><span th:replace="~{fragments/components :: badge(${b.status})}"></span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h2>Vehicles currently in garage</h2><a class="btn btn-outline btn-sm" th:href="@{/admin/jobs(active=true)}">View all</a></div>
+        <th:block th:if="${#lists.isEmpty(d.inGarage)}"><div th:replace="~{fragments/components :: empty('&#128663;', 'The garage is empty', 'Vehicles appear here once received.')}"></div></th:block>
+        <div class="table-wrap" th:unless="${#lists.isEmpty(d.inGarage)}">
+          <table>
+            <thead><tr><th>Job card</th><th>Vehicle</th><th>Mechanic</th><th>Status</th><th class="num">Estimate</th></tr></thead>
+            <tbody>
+              <tr th:each="j : ${d.inGarage}" class="row-link" th:attr="data-href=@{/admin/jobs/{id}(id=${j.id})}">
+                <td><a th:href="@{/admin/jobs/{id}(id=${j.id})}" th:text="${j.jobNo}">JC</a></td>
+                <td><strong th:text="${j.vehicle.regNo}">MH</strong><br><small th:text="${j.customer.name}">Cust</small></td>
+                <td th:text="${j.mechanic != null ? j.mechanic.name : 'Unassigned'}">Mechanic</td>
+                <td><span th:replace="~{fragments/components :: badge(${j.booking.status})}"></span></td>
+                <td class="num" th:text="${@fmt.money(j.estimatedTotal)}">0</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card" sec:authorize="hasAnyRole('SUPER_ADMIN','GARAGE_MANAGER','ACCOUNTANT')">
+        <h2>Monthly revenue (collections, last 6 months)</h2>
+        <div class="col-chart">
+          <div class="col" th:each="m : ${d.monthlyRevenue}">
+            <b th:text="${m.display}">0</b>
+            <i th:style="'height:' + ${m.pct} + '%'"></i>
+            <span th:text="${m.label}">Mon</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="card">
+        <h2>Mechanic workload</h2>
+        <div th:if="${#lists.isEmpty(d.workload)}" class="muted">No mechanics yet.</div>
+        <div class="bars">
+          <div class="bar-row" th:each="w : ${d.workload}">
+            <span class="lbl" th:text="${w.mechanic.name}">Name</span>
+            <span class="bar"><i class="blue" th:style="'width:' + ${w.openJobs > 5 ? 100 : w.openJobs * 20} + '%'"></i></span>
+            <span class="val" th:text="${w.openJobs} + ' open'">0</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Service statistics <small class="muted">(last 90 days)</small></h2>
+        <div th:if="${#lists.isEmpty(d.serviceStats)}" class="muted">Not enough bookings yet.</div>
+        <div class="bars">
+          <div class="bar-row" th:each="s : ${d.serviceStats}">
+            <span class="lbl" th:text="${s.label}" th:title="${s.label}">Service</span>
+            <span class="bar"><i th:style="'width:' + ${s.pct} + '%'"></i></span>
+            <span class="val" th:text="${s.display}">0</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" sec:authorize="hasAnyRole('SUPER_ADMIN','GARAGE_MANAGER','INVENTORY_MANAGER')">
+        <div class="card-head"><h2>Low-stock alerts</h2><a class="btn btn-outline btn-sm" th:href="@{/admin/inventory(low=true)}">Manage</a></div>
+        <p class="muted" th:if="${#lists.isEmpty(d.lowStock)}">All parts are above their minimum level.</p>
+        <ul style="list-style:none;margin:0;padding:0">
+          <li th:each="p : ${d.lowStock}" style="display:flex;justify-content:space-between;gap:.5rem;padding:.35rem 0;border-bottom:1px solid var(--line)">
+            <a th:href="@{/admin/inventory/{id}(id=${p.id})}" th:text="${p.name}">Part</a>
+            <span class="badge b-red" th:text="${@fmt.qty(p.stock)} + ' / min ' + ${@fmt.qty(p.minStock)}">1 / min 4</span>
+          </li>
+        </ul>
+      </div>
+
+      <div class="card" th:if="${!#lists.isEmpty(d.readyForDelivery)}">
+        <h2>Ready for delivery</h2>
+        <ul style="list-style:none;margin:0;padding:0">
+          <li th:each="j : ${d.readyForDelivery}" style="padding:.35rem 0;border-bottom:1px solid var(--line)">
+            <a th:href="@{/admin/jobs/{id}(id=${j.id})}"><strong th:text="${j.vehicle.regNo}">MH</strong></a>
+            <small th:text="' - ' + ${j.customer.name} + ' (' + ${j.customer.mobile} + ')'"></small>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</main>
+</body>
+</html>

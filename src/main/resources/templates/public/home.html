@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{fragments/site :: layout('Car service in Baner, Pune', ~{::main}, 'home')}">
+<body>
+<main>
+  <section class="hero">
+    <div class="in">
+      <div>
+        <p><span class="badge b-orange">Multi-brand car service centre &middot; Baner, Pune</span></p>
+        <h1>Honest car repair &amp; service, <em>tracked step by step.</em></h1>
+        <p class="lead">Book online, get free pickup &amp; drop, see the inspection report with photos, approve each repair
+          before we start, and pay securely. Every brand, every day.</p>
+        <div class="btn-row">
+          <a class="btn btn-primary" th:href="@{/portal/bookings/new}" sec:authorize="hasRole('CUSTOMER')">Book a service</a>
+          <a class="btn btn-primary" th:href="@{/register}" sec:authorize="!isAuthenticated()">Book a service</a>
+          <a class="btn btn-outline" th:href="@{/login}" sec:authorize="!isAuthenticated()">Track my vehicle</a>
+          <a class="btn btn-outline" th:href="@{/portal}" sec:authorize="hasRole('CUSTOMER')">My dashboard</a>
+          <a class="btn btn-outline" th:href="${garage.phoneLink}">&#128222; Call us</a>
+        </div>
+      </div>
+      <div class="panel">
+        <h3 th:text="${garage.name}">City Car Services</h3>
+        <dl>
+          <dt>Address</dt><dd th:text="${garage.address}">Address</dd>
+          <dt>Open</dt><dd th:text="${garage.hoursText}">Hours</dd>
+          <dt>Phone</dt><dd><a style="color:#fff" th:href="${garage.phoneLink}" th:text="${garage.phone}">+91</a></dd>
+          <dt>WhatsApp</dt><dd><a style="color:#fdba74" th:href="${garage.whatsappLink}" target="_blank" rel="noopener">Chat with us</a></dd>
+        </dl>
+        <p class="mt" th:if="${reviewCount > 0}">
+          <span class="star-text" th:text="${@fmt.stars(avgRating)}">&#9733;</span>
+          <strong th:text="${#numbers.formatDecimal(avgRating, 1, 1)}">4.8</strong>
+          <small style="color:#cbd5e1" th:text="'from ' + ${reviewCount} + ' customer reviews'"></small>
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>How it works</h2>
+    <p class="sub">A transparent workflow from booking to delivery.</p>
+    <ol class="steps" style="padding:0;margin:0">
+      <li><strong>Book online</strong><p class="muted">Pick your vehicle, services and a time. Ask for free pickup &amp; drop if you like.</p></li>
+      <li><strong>Inspection &amp; estimate</strong><p class="muted">Our mechanic inspects your car with photos and notes. You get an itemised estimate with GST.</p></li>
+      <li><strong>You approve</strong><p class="muted">Approve or reject each repair individually from your phone. No surprises on the bill.</p></li>
+      <li><strong>Track, pay, drive</strong><p class="muted">Follow live status, download the GST invoice, pay and collect a serviced car.</p></li>
+    </ol>
+  </section>
+
+  <section class="section" style="padding-top:0">
+    <h2>Our services</h2>
+    <p class="sub">Servicing, repairs, tyres, AC, denting-painting, detailing and emergency help.</p>
+    <div class="grid g4">
+      <div class="service-card" th:each="s, st : ${services}" th:if="${st.index &lt; 8}">
+        <span class="icon" th:text="${s.icon != null ? s.icon : '&#128295;'}">&#128295;</span>
+        <h3 th:text="${s.name}">Service</h3>
+        <p class="muted" th:text="${s.description}">Description</p>
+        <span class="price" th:if="${s.basePrice.signum() > 0}" th:text="'from ' + ${@fmt.money(s.basePrice)}">from</span>
+      </div>
+    </div>
+    <p class="mt"><a class="btn btn-outline" th:href="@{/services}">See all services</a></p>
+  </section>
+
+  <section class="section" style="padding-top:0" th:if="${!reviews.isEmpty()}">
+    <h2>What customers say</h2>
+    <div class="grid g3 mt">
+      <div class="review" th:each="r : ${reviews}">
+        <div th:replace="~{fragments/components :: stars(${r.rating})}"></div>
+        <p th:text="${r.reviewText != null ? r.reviewText : 'Great service!'}">Review</p>
+        <small th:text="'- ' + ${r.customer.name}">- Customer</small>
+      </div>
+    </div>
+  </section>
+</main>
+</body>
+</html>

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/staff :: layout('Bookings', ~{::main}, 'bookings')}">
+<body>
+<main>
+  <div class="page-head">
+    <div class="grow"><h1>Service bookings</h1><span class="muted"><span data-filter-count th:text="${#lists.size(bookings)}">0</span> shown</span></div>
+    <div class="actions"><a class="btn btn-primary" th:href="@{/admin/bookings/new}">+ New booking</a></div>
+  </div>
+  <form class="filters" th:action="@{/admin/bookings}" method="get">
+    <div class="field grow search"><label for="q">Search</label>
+      <input type="text" id="q" name="q" th:value="${q}" placeholder="Booking no, vehicle, customer..."></div>
+    <div class="field"><label for="status">Status</label>
+      <select id="status" name="status"><option value="">All</option>
+        <option th:each="s : ${statuses}" th:value="${s.name()}" th:text="${s.label}" th:selected="${status == s}">Status</option></select></div>
+    <div class="field"><label for="from">From</label><input type="date" id="from" name="from" th:value="${from}"></div>
+    <div class="field"><label for="to">To</label><input type="date" id="to" name="to" th:value="${to}"></div>
+    <button class="btn" type="submit">Filter</button>
+    <a class="btn btn-outline" th:href="@{/admin/bookings}">Reset</a>
+  </form>
+  <th:block th:if="${#lists.isEmpty(bookings)}"><div th:replace="~{fragments/components :: empty('&#128197;', 'No bookings match', 'Try clearing the filters or create a new booking.')}"></div></th:block>
+  <div class="table-wrap" th:unless="${#lists.isEmpty(bookings)}">
+    <table id="bookingTable">
+      <thead><tr><th data-sort>Booking</th><th data-sort>When</th><th data-sort>Customer</th><th data-sort>Vehicle</th><th>Services</th><th data-sort>Status</th></tr></thead>
+      <tbody>
+        <tr th:each="b : ${bookings}" class="row-link" th:attr="data-href=@{/admin/bookings/{id}(id=${b.id})}">
+          <td><a th:href="@{/admin/bookings/{id}(id=${b.id})}" th:text="${b.bookingNo}">BK</a></td>
+          <td class="nowrap" th:text="${@fmt.dateTime(b.preferredAt)}">date</td>
+          <td th:text="${b.customer.name}">Customer</td>
+          <td><span class="plate" th:text="${b.vehicle.regNo}">MH12</span></td>
+          <td th:text="${b.serviceNames}">Services</td>
+          <td><span th:replace="~{fragments/components :: badge(${b.status})}"></span>
+              <span class="badge b-blue" th:if="${b.pickupRequired}">Pickup</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</main>
+</body>
+</html>

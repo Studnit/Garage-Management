@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/staff :: layout(${isNew} ? 'New customer' : 'Edit customer', ~{::main}, 'customers')}">
+<body>
+<main>
+  <div class="page-head"><div class="grow"><h1 th:text="${isNew} ? 'New customer' : 'Edit customer'">Customer</h1></div></div>
+  <div class="alert alert-danger" th:if="${error != null}" th:text="${error}">Error</div>
+  <div class="card">
+    <form th:action="${isNew} ? @{/admin/customers/new} : @{/admin/customers/{id}/edit(id=${customer.id})}" th:object="${form}" method="post" novalidate>
+      <div th:replace="~{fragments/components :: formerrors}"></div>
+      <div class="form-grid">
+        <div th:replace="~{fragments/components :: input('Full name *', 'name', 'text')}"></div>
+        <div th:replace="~{fragments/components :: input('Mobile number *', 'mobile', 'tel')}"></div>
+        <div th:replace="~{fragments/components :: input('Email', 'email', 'email')}"></div>
+        <div th:replace="~{fragments/components :: input('City', 'city', 'text')}"></div>
+        <div class="full" th:replace="~{fragments/components :: textarea('Address', 'address')}"></div>
+        <div th:replace="~{fragments/components :: input('Pincode', 'pincode', 'text')}"></div>
+        <div th:replace="~{fragments/components :: input('GSTIN (business customers, for GST invoice)', 'gstin', 'text')}"></div>
+        <div class="full" th:replace="~{fragments/components :: textarea('Internal notes', 'notes')}"></div>
+      </div>
+      <div class="btn-row mt">
+        <button class="btn btn-primary" type="submit">Save customer</button>
+        <a class="btn btn-outline" th:href="${isNew} ? @{/admin/customers} : @{/admin/customers/{id}(id=${customer.id})}">Cancel</a>
+      </div>
+    </form>
+  </div>
+</main>
+</body>
+</html>

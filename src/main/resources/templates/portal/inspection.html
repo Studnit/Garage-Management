@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/site :: layout('Inspection report', ~{::main}, 'p-bookings')}">
+<body>
+<main>
+  <div class="page-head"><div class="grow"><div class="crumbs"><a th:href="@{/portal/bookings/{id}(id=${job.booking.id})}" th:text="${job.booking.bookingNo}">BK</a></div>
+    <h1>Vehicle inspection report</h1>
+    <span class="muted"><span class="plate" th:text="${job.vehicle.regNo}">MH12</span> <span th:text="${job.vehicle.displayName}"></span></span></div></div>
+  <div class="card"><div class="table-wrap"><table>
+    <thead><tr><th>Area</th><th>Condition</th><th>Remarks</th></tr></thead>
+    <tbody><tr th:each="it : ${inspection.items}">
+      <td th:text="${it.area.label}">Engine</td>
+      <td><span th:replace="~{fragments/components :: badge(${it.condition})}"></span></td>
+      <td th:text="${it.remarks != null ? it.remarks : ''}"></td></tr></tbody></table></div></div>
+  <div class="card"><h2>Findings</h2><dl class="kv">
+    <dt>Notes</dt><dd th:text="${inspection.notes != null ? inspection.notes : '-'}">-</dd>
+    <dt>Defective parts</dt><dd th:text="${inspection.defectiveParts != null ? inspection.defectiveParts : '-'}">-</dd>
+    <dt>Recommended repairs</dt><dd th:text="${inspection.recommendedRepairs != null ? inspection.recommendedRepairs : '-'}">-</dd>
+    <dt>Estimated cost</dt><dd th:text="${inspection.estimatedCost != null ? @fmt.money(inspection.estimatedCost) : '-'}">-</dd></dl></div>
+  <div class="card" th:if="${!#lists.isEmpty(inspection.media)}"><h2>Photos &amp; videos</h2>
+    <div class="media-grid"><div class="media-item" th:each="m : ${inspection.media}">
+      <a th:if="${m.kind.name() == 'PHOTO'}" th:href="@{/media/{id}(id=${m.id})}" target="_blank" rel="noopener">
+        <img th:src="@{/media/{id}(id=${m.id})}" th:alt="${m.caption != null ? m.caption : m.originalName}" loading="lazy"></a>
+      <video th:if="${m.kind.name() == 'VIDEO'}" controls preload="metadata" th:src="@{/media/{id}(id=${m.id})}"></video>
+      <div class="cap"><small th:text="${m.caption != null and !m.caption.isBlank() ? m.caption : m.originalName}">caption</small></div>
+    </div></div></div>
+</main>
+</body>
+</html>

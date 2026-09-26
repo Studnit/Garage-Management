@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/staff :: layout('Pickup & drop', ~{::main}, 'pickups')}">
+<body>
+<main>
+  <div class="page-head"><div class="grow"><h1>Pickup &amp; drop</h1><span class="muted">Assign drivers and track vehicle movement</span></div></div>
+
+  <div class="card">
+    <h2>Open requests</h2>
+    <th:block th:if="${#lists.isEmpty(open)}"><div th:replace="~{fragments/components :: empty('&#128666;', 'No open pickup or drop requests', 'Requests appear when a booking asks for pickup and drop.')}"></div></th:block>
+    <div class="grid g2" th:unless="${#lists.isEmpty(open)}">
+      <div class="card" th:each="p : ${open}" style="margin:0">
+        <div class="card-head"><h3><span th:text="${p.type.label}">Pickup</span> &middot;
+          <a th:href="@{/admin/bookings/{id}(id=${p.booking.id})}" th:text="${p.booking.bookingNo}">BK</a></h3>
+          <span th:replace="~{fragments/components :: badge(${p.status})}"></span></div>
+        <dl class="kv">
+          <dt>Customer</dt><dd th:text="${p.booking.customer.name + ' - ' + p.booking.customer.mobile}">-</dd>
+          <dt>Vehicle</dt><dd th:text="${p.booking.vehicle.regNo}">-</dd>
+          <dt>Address</dt><dd th:text="${p.address != null ? p.address : '-'}">-</dd>
+          <dt>When</dt><dd th:text="${@fmt.dateTime(p.scheduledAt)}">-</dd>
+          <dt>Driver</dt><dd th:text="${p.driver != null ? p.driver.name + ' (' + p.driver.phone + ')' : 'Not assigned'}">-</dd>
+        </dl>
+        <form th:action="@{/admin/pickups/{id}/assign(id=${p.id})}" method="post" th:if="${!#lists.isEmpty(activeDrivers)}">
+          <div class="form-grid">
+            <div class="field"><label th:for="'driver' + ${p.id}">Driver</label>
+              <select name="driverId" th:id="'driver' + ${p.id}" required>
+                <option value="">Select driver</option>
+                <option th:each="d : ${activeDrivers}" th:value="${d.id}" th:text="${d.name}" th:selected="${p.driver != null and p.driver.id == d.id}">Driver</option></select></div>
+            <div class="field"><label th:for="'when' + ${p.id}">Scheduled time</label>
+              <input type="datetime-local" name="scheduledAt" th:id="'when' + ${p.id}" th:value="${@fmt.inputDateTime(p.scheduledAt)}"></div>
+            <div class="field full"><label th:for="'loc' + ${p.id}">Location link (Google Maps)</label>
+              <input type="url" name="locationLink" th:id="'loc' + ${p.id}" th:value="${p.locationLink}" maxlength="300"></div>
+          </div>
+          <button class="btn btn-outline btn-sm mt" type="submit" th:text="${p.driver == null} ? 'Assign driver' : 'Update assignment'">Assign</button>
+        </form>
+        <div class="btn-row mt">
+          <form th:action="@{/admin/pickups/{id}/advance(id=${p.id})}" method="post" th:if="${p.status.name() != 'REQUESTED'}">
+            <button class="btn btn-primary btn-sm" type="submit" th:text="${p.status.name() == 'ASSIGNED'} ? 'Start trip' : 'Mark done'">Next</button>
+          </form>
+          <form th:action="@{/admin/pickups/{id}/cancel(id=${p.id})}" method="post" data-confirm="Cancel this pickup / drop request?">
+            <button class="btn btn-outline btn-sm" type="submit">Cancel</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid g-side">
+    <div class="card">
+      <h2>Recently completed</h2>
+      <p class="muted" th:if="${#lists.isEmpty(closed)}">Nothing yet.</p>
+      <div class="table-wrap" th:unless="${#lists.isEmpty(closed)}"><table>
+        <thead><tr><th>Type</th><th>Booking</th><th>Driver</th><th>Status</th><th>Completed</th></tr></thead>
+        <tbody><tr th:each="p : ${closed}">
+          <td th:text="${p.type.label}">Pickup</td>
+          <td><a th:href="@{/admin/bookings/{id}(id=${p.booking.id})}" th:text="${p.booking.bookingNo}">BK</a></td>
+          <td th:text="${p.driver != null ? p.driver.name : '-'}">-</td>
+          <td><span th:replace="~{fragments/components :: badge(${p.status})}"></span></td>
+          <td th:text="${@fmt.dateTime(p.completedAt)}">-</td>
+        </tr></tbody></table></div>
+    </div>
+    <div class="card">
+      <h2>Drivers</h2>
+      <ul class="log">
+        <li th:each="d : ${drivers}">
+          <strong th:text="${d.name}">Driver</strong> <span class="muted" th:text="${d.phone + (d.vehicleNo != null ? ' - ' + d.vehicleNo : '')}"></span>
+          <form th:action="@{/admin/pickups/drivers/{id}/toggle(id=${d.id})}" method="post" style="display:inline">
+            <button class="link-btn" type="submit" th:text="${d.active} ? 'Deactivate' : 'Activate'">Toggle</button></form>
+        </li>
+      </ul>
+      <form th:action="@{/admin/pickups/drivers}" th:object="${driverForm}" method="post" novalidate>
+        <h3>Add driver</h3>
+        <div th:replace="~{fragments/components :: input('Name *', 'name', 'text')}"></div>
+        <div th:replace="~{fragments/components :: input('Phone *', 'phone', 'tel')}"></div>
+        <div th:replace="~{fragments/components :: input('Vehicle number', 'vehicleNo', 'text')}"></div>
+        <button class="btn btn-outline" type="submit">Add driver</button>
+      </form>
+    </div>
+  </div>
+</main>
+</body>
+</html>

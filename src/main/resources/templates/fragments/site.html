@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:fragment="layout(title, content, active)" lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title th:text="${title} + ' | ' + ${garage.name}">Page | City Car Services</title>
+  <meta name="description" th:content="${garage.name} + ' - ' + ${garage.tagline} + ' in Baner, Pune. Book your car service online.'">
+  <link rel="icon" type="image/svg+xml" th:href="@{/img/favicon.svg}">
+  <link rel="stylesheet" th:href="@{/css/app.css}">
+  <script th:src="@{/js/app.js}" defer></script>
+</head>
+<body class="site" th:classappend="${#strings.startsWith(active, 'p-')} ? 'portal'">
+<header class="site-nav">
+  <div class="in">
+    <a class="brand" th:href="@{/}">
+      <svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="22" fill="none" stroke="currentColor" stroke-width="6"/><circle cx="32" cy="32" r="6" fill="#f97316"/><g stroke="#f97316" stroke-width="4" stroke-linecap="round"><path d="M32 10v10M32 44v10M10 32h10M44 32h10"/></g></svg>
+      <div><b th:text="${garage.name}">City Car Services</b><span th:text="${garage.tagline}">Tagline</span></div>
+    </a>
+    <nav aria-label="Site">
+      <a th:href="@{/}" th:classappend="${active == 'home'} ? 'active'">Home</a>
+      <a th:href="@{/services}" th:classappend="${active == 'services'} ? 'active'">Services</a>
+      <a th:href="@{/contact}" th:classappend="${active == 'contact'} ? 'active'">Contact</a>
+      <th:block sec:authorize="hasRole('CUSTOMER')">
+        <a th:href="@{/portal}" th:classappend="${active == 'p-dashboard'} ? 'active'">My Dashboard</a>
+        <a th:href="@{/portal/vehicles}" th:classappend="${active == 'p-vehicles'} ? 'active'">Vehicles</a>
+        <a th:href="@{/portal/bookings}" th:classappend="${active == 'p-bookings'} ? 'active'">Bookings</a>
+        <a th:href="@{/portal/invoices}" th:classappend="${active == 'p-invoices'} ? 'active'">Invoices</a>
+        <a th:href="@{/portal/history}" th:classappend="${active == 'p-history'} ? 'active'">History</a>
+        <a th:href="@{/portal/profile}" th:classappend="${active == 'p-profile'} ? 'active'">Profile</a>
+      </th:block>
+    </nav>
+    <div class="cta">
+      <th:block sec:authorize="!isAuthenticated()">
+        <a class="btn btn-outline btn-sm" th:href="@{/login}">Sign in</a>
+        <a class="btn btn-primary btn-sm" th:href="@{/register}">Book a service</a>
+      </th:block>
+      <th:block sec:authorize="hasRole('CUSTOMER')">
+        <a class="btn btn-primary btn-sm" th:href="@{/portal/bookings/new}">Book a service</a>
+      </th:block>
+      <a class="btn btn-primary btn-sm" th:href="@{/admin}"
+         sec:authorize="hasAnyRole('SUPER_ADMIN','GARAGE_MANAGER','SERVICE_ADVISOR','MECHANIC','ACCOUNTANT','INVENTORY_MANAGER')">Staff dashboard</a>
+      <form th:action="@{/logout}" method="post" class="inline" sec:authorize="isAuthenticated()" data-no-loading>
+        <button type="submit" class="btn btn-sm">Sign out</button>
+      </form>
+    </div>
+  </div>
+  <div class="stripe"></div>
+</header>
+
+<div class="site-main">
+  <div class="portal-wrap" th:if="${#strings.startsWith(active, 'p-')}">
+    <div th:replace="~{fragments/components :: flash}"></div>
+    <th:block th:replace="${content}">Page content</th:block>
+  </div>
+  <th:block th:unless="${#strings.startsWith(active, 'p-')}">
+    <div style="max-width:1180px;margin:0 auto;padding:0 1.1rem"><div th:replace="~{fragments/components :: flash}"></div></div>
+    <th:block th:replace="${content}">Page content</th:block>
+  </th:block>
+</div>
+
+<footer class="site-foot">
+  <div class="in">
+    <div>
+      <h4 th:text="${garage.name}">City Car Services</h4>
+      <p th:text="${garage.tagline}">Tagline</p>
+      <p><small th:if="${!garage.gstin.isEmpty()}" th:text="'GSTIN: ' + ${garage.gstin}"></small></p>
+    </div>
+    <div>
+      <h4>Visit us</h4>
+      <p th:text="${garage.address}">Address</p>
+      <p><a th:href="${garage.mapUrl}" target="_blank" rel="noopener">View on map</a></p>
+    </div>
+    <div>
+      <h4>Open every day</h4>
+      <p th:text="${garage.hoursText}">Hours</p>
+      <p><a th:href="${garage.phoneLink}" th:text="${garage.phone}">+91</a> &middot;
+         <a th:href="${garage.whatsappLink}" target="_blank" rel="noopener">WhatsApp</a></p>
+    </div>
+  </div>
+</footer>
+<div class="toasts" id="toasts" aria-live="polite"></div>
+</body>
+</html>

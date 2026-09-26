@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/staff :: layout('Reports', ~{::main}, 'reports')}">
+<body>
+<main>
+  <div class="page-head">
+    <div class="grow"><h1>Reports</h1><span class="muted" th:text="${report.description}">Description</span></div>
+    <div class="actions">
+      <a class="btn btn-outline" th:href="@{/admin/reports/{k}(k=${key}, format='csv', from=${from}, to=${to}, q=${q})}">Export CSV</a>
+      <button class="btn btn-outline" type="button" data-print>Print</button>
+    </div>
+  </div>
+  <div class="tabs">
+    <a th:each="c : ${catalog}" th:href="@{/admin/reports/{k}(k=${c[0]}, from=${from}, to=${to})}" th:text="${c[1]}"
+       th:classappend="${c[0] == key} ? 'active'">Report</a>
+  </div>
+  <form class="filters" th:action="@{/admin/reports/{k}(k=${key})}" method="get">
+    <th:block th:if="${usesDates}">
+      <div class="field"><label for="from">From</label><input type="date" id="from" name="from" th:value="${from}"></div>
+      <div class="field"><label for="to">To</label><input type="date" id="to" name="to" th:value="${to}"></div>
+    </th:block>
+    <div class="field grow"><label for="q">Search</label><input type="text" id="q" name="q" th:value="${q}" placeholder="Filter (vehicle number, customer...)"></div>
+    <button class="btn btn-primary" type="submit">Apply</button>
+  </form>
+  <div class="grid g4 mb" th:if="${!#lists.isEmpty(report.summary)}">
+    <div class="tile" th:each="t : ${report.summary}"><div class="label" th:text="${t[0]}">Label</div><div class="value" th:text="${t[1]}">0</div></div>
+  </div>
+  <div class="card">
+    <h2 th:text="${report.title}">Title</h2>
+    <th:block th:if="${report.empty}"><div th:replace="~{fragments/components :: empty('&#128202;', 'No data for this report', 'Try a wider date range.')}"></div></th:block>
+    <div class="table-wrap" th:unless="${report.empty}">
+      <table>
+        <thead><tr><th th:each="h, st : ${report.headers}" th:text="${h}" th:classappend="${report.numeric[st.index]} ? 'num'" data-sort>Header</th></tr></thead>
+        <tbody><tr th:each="row : ${report.rows}"><td th:each="c, st : ${row}" th:text="${c}" th:classappend="${report.numeric[st.index]} ? 'num'">cell</td></tr></tbody>
+        <tfoot th:if="${!#lists.isEmpty(report.totals)}"><tr><th th:each="c, st : ${report.totals}" th:text="${c}" th:classappend="${report.numeric[st.index]} ? 'num'">total</th></tr></tfoot>
+      </table>
+    </div>
+  </div>
+</main>
+</body>
+</html>

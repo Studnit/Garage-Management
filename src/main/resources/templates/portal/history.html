@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/site :: layout('Service history', ~{::main}, 'p-history')}">
+<body>
+<main>
+  <div class="page-head"><div class="grow"><h1>Service history</h1><span class="muted">All delivered and completed services</span></div></div>
+  <th:block th:if="${#lists.isEmpty(bookings)}"><div class="card"><div th:replace="~{fragments/components :: empty('&#128203;', 'No completed services yet', 'Once a service is delivered it is recorded here for good.')}"></div></div></th:block>
+  <div class="card" th:each="v : ${vehicles}" th:if="${!#lists.isEmpty(bookings)}">
+    <h2><span class="plate" th:text="${v.regNo}">MH12</span> <small th:text="${v.displayName}"></small></h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Date</th><th>Booking</th><th>Services</th><th class="num">Odometer</th><th class="num">Invoice</th></tr></thead>
+      <tbody>
+        <th:block th:each="b : ${bookings}" th:if="${b.vehicle.id == v.id}">
+          <tr class="row-link" th:attr="data-href=@{/portal/bookings/{id}(id=${b.id})}">
+            <td th:text="${@fmt.date(b.preferredAt.toLocalDate())}">date</td>
+            <td><a th:href="@{/portal/bookings/{id}(id=${b.id})}" th:text="${b.bookingNo}">BK</a></td>
+            <td th:text="${b.serviceNames}">-</td>
+            <td class="num" th:text="${b.jobCard != null ? b.jobCard.odometerIn : '-'}">-</td>
+            <td class="num" th:text="${b.jobCard != null and b.jobCard.invoice != null ? @fmt.money(b.jobCard.invoice.total) : '-'}">-</td>
+          </tr>
+        </th:block>
+      </tbody></table></div>
+  </div>
+</main>
+</body>
+</html>

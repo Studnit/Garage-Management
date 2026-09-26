@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/staff :: layout(${part.name}, ~{::main}, 'inventory')}">
+<body>
+<main>
+  <div class="page-head">
+    <div class="grow">
+      <div class="crumbs"><a th:href="@{/admin/inventory}">Inventory</a> / <span th:text="${part.partNo}">P-001</span></div>
+      <h1 th:text="${part.name}">Part</h1>
+      <span class="badge" th:classappend="${part.stock.compareTo(part.minStock) <= 0} ? 'b-red' : 'b-green'"
+            th:text="'Stock: ' + ${@fmt.qty(part.stock)} + ' ' + ${part.unit}"></span>
+      <span class="badge b-gray" th:unless="${part.active}">Inactive</span>
+    </div>
+    <div class="actions"><a class="btn btn-outline" th:href="@{/admin/inventory/{id}/edit(id=${part.id})}">Edit</a></div>
+  </div>
+  <div class="grid g-side">
+    <div>
+      <div class="card"><h2>Details</h2>
+        <dl class="kv">
+          <dt>Part no.</dt><dd class="mono" th:text="${part.partNo}">-</dd>
+          <dt>Brand</dt><dd th:text="${part.brand != null ? part.brand : '-'}">-</dd>
+          <dt>Category</dt><dd th:text="${part.category != null ? part.category : '-'}">-</dd>
+          <dt>Compatibility</dt><dd th:text="${part.compatibility != null ? part.compatibility : '-'}">-</dd>
+          <dt>Purchase price</dt><dd th:text="${@fmt.money(part.purchasePrice)}">-</dd>
+          <dt>Selling price</dt><dd th:text="${@fmt.money(part.sellingPrice)} + ' + ' + ${@fmt.qty(part.gstRate)} + '% GST'">-</dd>
+          <dt>HSN</dt><dd th:text="${part.hsnCode != null ? part.hsnCode : '-'}">-</dd>
+          <dt>Minimum stock</dt><dd th:text="${@fmt.qty(part.minStock)}">-</dd>
+          <dt>Rack</dt><dd th:text="${part.rackLocation != null ? part.rackLocation : '-'}">-</dd>
+          <dt>Supplier</dt><dd th:text="${part.supplier != null ? part.supplier.name : '-'}">-</dd>
+        </dl></div>
+      <div class="card"><h2>Stock movements</h2>
+        <p class="muted" th:if="${#lists.isEmpty(movements)}">No movements yet.</p>
+        <div class="table-wrap" th:unless="${#lists.isEmpty(movements)}"><table>
+          <thead><tr><th>Date</th><th>Type</th><th class="num">Qty</th><th class="num">Balance</th><th>Reference</th><th>By</th></tr></thead>
+          <tbody><tr th:each="m : ${movements}">
+            <td class="nowrap" th:text="${@fmt.dateTime(m.createdAt)}">-</td>
+            <td><span class="badge" th:classappend="${m.type.name() == 'IN'} ? 'b-green' : 'b-orange'" th:text="${m.type.label}">In</span></td>
+            <td class="num" th:text="${@fmt.qty(m.quantity)}">0</td>
+            <td class="num" th:text="${@fmt.qty(m.balanceAfter)}">0</td>
+            <td th:text="${m.jobCard != null ? m.jobCard.jobNo : (m.reference != null ? m.reference : (m.note != null ? m.note : '-'))}">-</td>
+            <td th:text="${m.createdBy != null ? m.createdBy : '-'}">-</td>
+          </tr></tbody></table></div></div>
+    </div>
+    <div>
+      <div class="card"><h2>Stock in (purchase)</h2>
+        <form th:action="@{/admin/inventory/{id}/in(id=${part.id})}" method="post">
+          <div class="field"><label for="qtyIn">Quantity *</label><input type="number" id="qtyIn" name="quantity" step="0.01" min="0.01" required></div>
+          <div class="field"><label for="unitCost">Unit cost (₹)</label><input type="number" id="unitCost" name="unitCost" step="0.01" min="0"></div>
+          <div class="field"><label for="supplierId">Supplier</label>
+            <select id="supplierId" name="supplierId"><option value="">-</option>
+              <option th:each="s : ${suppliers}" th:value="${s.id}" th:text="${s.name}" th:selected="${part.supplier != null and part.supplier.id == s.id}">Supplier</option></select></div>
+          <div class="field"><label for="refIn">Bill / reference</label><input type="text" id="refIn" name="reference" maxlength="80"></div>
+          <div class="field"><label for="noteIn">Note</label><input type="text" id="noteIn" name="note" maxlength="200"></div>
+          <button class="btn btn-primary btn-block" type="submit">Add stock</button>
+        </form></div>
+      <div class="card"><h2>Stock out (adjustment)</h2>
+        <p class="hint">Parts used on job cards are deducted automatically. Use this for damage, returns or corrections.</p>
+        <form th:action="@{/admin/inventory/{id}/out(id=${part.id})}" method="post" data-confirm="Reduce stock by this quantity?">
+          <div class="field"><label for="qtyOut">Quantity *</label><input type="number" id="qtyOut" name="quantity" step="0.01" min="0.01" required></div>
+          <div class="field"><label for="refOut">Reason / reference</label><input type="text" id="refOut" name="reference" maxlength="80"></div>
+          <div class="field"><label for="noteOut">Note</label><input type="text" id="noteOut" name="note" maxlength="200"></div>
+          <button class="btn btn-outline btn-block" type="submit">Reduce stock</button>
+        </form></div>
+    </div>
+  </div>
+</main>
+</body>
+</html>

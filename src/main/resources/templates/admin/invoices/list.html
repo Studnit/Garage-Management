@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/staff :: layout('Invoices', ~{::main}, 'invoices')}">
+<body>
+<main>
+  <div class="page-head">
+    <div class="grow"><h1>Invoices</h1></div>
+    <div class="actions"><a class="btn btn-outline" th:href="@{/admin/payments}">Payments to verify</a></div>
+  </div>
+  <form class="filters" th:action="@{/admin/invoices}" method="get">
+    <div class="field grow search"><label for="q">Search</label>
+      <input type="text" id="q" name="q" th:value="${q}" placeholder="Invoice no, customer, vehicle..."></div>
+    <div class="field"><label for="status">Payment status</label>
+      <select id="status" name="status"><option value="">All</option>
+        <option th:each="s : ${statuses}" th:value="${s.name()}" th:text="${s.label}" th:selected="${status == s}">Status</option></select></div>
+    <button class="btn" type="submit">Filter</button>
+    <a class="btn btn-outline" th:href="@{/admin/invoices}">Reset</a>
+  </form>
+  <th:block th:if="${#lists.isEmpty(invoices)}"><div th:replace="~{fragments/components :: empty('&#129534;', 'No invoices', 'An invoice is generated automatically when a vehicle is marked Ready.')}"></div></th:block>
+  <div class="table-wrap" th:unless="${#lists.isEmpty(invoices)}">
+    <table>
+      <thead><tr><th data-sort>Invoice</th><th data-sort>Date</th><th data-sort>Customer</th><th>Vehicle</th><th class="num" data-sort>Total</th><th class="num" data-sort>Balance</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr th:each="i : ${invoices}" class="row-link" th:attr="data-href=@{/admin/invoices/{id}(id=${i.id})}">
+          <td><a th:href="@{/admin/invoices/{id}(id=${i.id})}" th:text="${i.invoiceNo}">INV</a></td>
+          <td th:text="${@fmt.date(i.invoiceDate)}">date</td>
+          <td th:text="${i.customer.name}">Customer</td>
+          <td><span class="plate" th:text="${i.vehicle.regNo}">MH12</span></td>
+          <td class="num" th:text="${@fmt.plain(i.total)}">0</td>
+          <td class="num" th:text="${@fmt.plain(i.balance)}">0</td>
+          <td><span th:replace="~{fragments/components :: badge(${i.paymentStatus})}"></span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</main>
+</body>
+</html>

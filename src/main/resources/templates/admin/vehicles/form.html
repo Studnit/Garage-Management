@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/staff :: layout(${isNew} ? 'Add vehicle' : 'Edit vehicle', ~{::main}, 'vehicles')}">
+<body>
+<main>
+  <div class="page-head"><div class="grow">
+    <div class="crumbs"><a th:href="@{/admin/customers/{id}(id=${customer.id})}" th:text="${customer.name}">Customer</a></div>
+    <h1 th:text="${isNew} ? 'Add vehicle' : 'Edit vehicle'">Vehicle</h1></div></div>
+  <div class="alert alert-danger" th:if="${error != null}" th:text="${error}">Error</div>
+  <div class="card">
+    <form th:action="@{${formAction}}" th:object="${form}" method="post" novalidate>
+      <input type="hidden" th:field="*{customerId}">
+      <div th:replace="~{fragments/components :: formerrors}"></div>
+      <div th:replace="~{fragments/forms :: vehicleFields(${fuelTypes})}"></div>
+      <div class="btn-row mt">
+        <button class="btn btn-primary" type="submit">Save vehicle</button>
+        <a class="btn btn-outline" th:href="@{${cancelUrl}}">Cancel</a>
+      </div>
+    </form>
+  </div>
+</main>
+</body>
+</html>

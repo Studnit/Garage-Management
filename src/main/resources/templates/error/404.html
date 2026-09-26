@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{fragments/site :: layout('Page not found', ~{::main}, 'error')}">
+<body>
+<main class="error-page">
+  <div class="code">404</div>
+  <h1>Page not found</h1>
+  <p class="muted">We could not find what you were looking for. It may have been moved, or you may not have access to it.</p>
+  <div class="btn-row" style="justify-content:center">
+    <a class="btn btn-primary" th:href="@{/}">Go to home</a>
+    <a class="btn btn-outline" th:href="@{/admin}" sec:authorize="hasAnyRole('SUPER_ADMIN','GARAGE_MANAGER','SERVICE_ADVISOR','MECHANIC','ACCOUNTANT','INVENTORY_MANAGER')">Staff dashboard</a>
+    <a class="btn btn-outline" th:href="@{/portal}" sec:authorize="hasRole('CUSTOMER')">My dashboard</a>
+  </div>
+</main>
+</body>
+</html>

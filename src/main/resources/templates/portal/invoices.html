@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/site :: layout('My invoices', ~{::main}, 'p-invoices')}">
+<body>
+<main>
+  <div class="page-head"><div class="grow"><h1>My invoices</h1></div></div>
+  <th:block th:if="${#lists.isEmpty(invoices)}"><div class="card"><div th:replace="~{fragments/components :: empty('&#129534;', 'No invoices yet', 'Your invoices appear here once your vehicle is ready.')}"></div></div></th:block>
+  <div class="table-wrap" th:unless="${#lists.isEmpty(invoices)}"><table>
+    <thead><tr><th>Invoice</th><th>Date</th><th>Vehicle</th><th class="num">Total</th><th class="num">Balance</th><th>Status</th></tr></thead>
+    <tbody><tr th:each="i : ${invoices}" class="row-link" th:attr="data-href=@{/portal/invoices/{id}(id=${i.id})}">
+      <td><a th:href="@{/portal/invoices/{id}(id=${i.id})}" th:text="${i.invoiceNo}">INV</a></td>
+      <td th:text="${@fmt.date(i.invoiceDate)}">date</td>
+      <td th:text="${i.vehicle.regNo}">MH12</td>
+      <td class="num" th:text="${@fmt.plain(i.total)}">0</td>
+      <td class="num" th:text="${@fmt.plain(i.balance)}">0</td>
+      <td><span th:replace="~{fragments/components :: badge(${i.paymentStatus})}"></span></td>
+    </tr></tbody></table></div>
+</main>
+</body>
+</html>

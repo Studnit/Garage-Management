@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/staff :: layout(${isNew} ? 'New service' : 'Edit service', ~{::main}, 'services')}">
+<body>
+<main>
+  <div class="page-head"><div class="grow"><div class="crumbs"><a th:href="@{/admin/services}">Services</a></div>
+    <h1 th:text="${isNew} ? 'New service' : 'Edit service'">Service</h1></div></div>
+  <div class="alert alert-danger" th:if="${error != null}" th:text="${error}">Error</div>
+  <div class="card">
+    <form th:action="@{${formAction}}" th:object="${form}" method="post" novalidate>
+      <div th:replace="~{fragments/components :: formerrors}"></div>
+      <div class="form-grid">
+        <div th:replace="~{fragments/components :: input('Service name *', 'name', 'text')}"></div>
+        <div th:replace="~{fragments/components :: select('Category', 'category', ${categories})}"></div>
+        <div th:replace="~{fragments/components :: input('Icon (emoji)', 'icon', 'text')}"></div>
+        <div th:replace="~{fragments/components :: input('Starting price (₹, excl. GST; 0 = quote after inspection)', 'basePrice', 'number')}"></div>
+        <div th:replace="~{fragments/components :: input('GST %', 'gstRate', 'number')}"></div>
+        <div th:replace="~{fragments/components :: input('Estimated hours', 'estimatedHours', 'number')}"></div>
+        <div th:replace="~{fragments/components :: input('Service interval (km)', 'intervalKm', 'number')}"></div>
+        <div th:replace="~{fragments/components :: input('Service interval (months)', 'intervalMonths', 'number')}"></div>
+        <div th:replace="~{fragments/components :: input('Display order', 'sortOrder', 'number')}"></div>
+        <div class="field"><span class="label">Visibility</span><label class="check"><input type="checkbox" th:field="*{active}"> Show to customers and staff</label></div>
+        <div class="full" th:replace="~{fragments/components :: textarea('Description', 'description')}"></div>
+      </div>
+      <div class="btn-row mt">
+        <button class="btn btn-primary" type="submit">Save service</button>
+        <a class="btn btn-outline" th:href="@{/admin/services}">Cancel</a>
+      </div>
+    </form>
+  </div>
+</main>
+</body>
+</html>

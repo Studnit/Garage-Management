@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/site :: layout('Book a service', ~{::main}, 'p-bookings')}">
+<body>
+<main>
+  <div class="page-head"><div class="grow"><h1>Book a service</h1>
+    <span class="muted" th:text="${garage.hoursText}">Open daily</span></div></div>
+  <div class="alert alert-danger" th:if="${error != null}" th:text="${error}">Error</div>
+  <div class="alert alert-warn" th:if="${#lists.isEmpty(vehicles)}">Please <a th:href="@{/portal/vehicles/new}">add your vehicle</a> before booking.</div>
+  <div class="card">
+    <form th:action="@{/portal/bookings/new}" th:object="${form}" method="post" novalidate>
+      <div th:replace="~{fragments/components :: formerrors}"></div>
+      <div th:replace="~{fragments/forms :: bookingFields(${vehicles}, ${services})}"></div>
+      <div class="btn-row mt">
+        <button class="btn btn-primary" type="submit" th:disabled="${#lists.isEmpty(vehicles)}">Request booking</button>
+        <a class="btn btn-outline" th:href="@{/portal/bookings}">Cancel</a>
+      </div>
+      <p class="hint">Our team will confirm your slot shortly. Prices are quoted after inspection and need your approval before any work starts.</p>
+    </form>
+  </div>
+</main>
+</body>
+</html>

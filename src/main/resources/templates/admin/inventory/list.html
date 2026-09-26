@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/staff :: layout('Spare parts & inventory', ~{::main}, 'inventory')}">
+<body>
+<main>
+  <div class="page-head">
+    <div class="grow"><h1>Spare parts &amp; inventory</h1>
+      <span class="pill-alert" th:if="${lowCount > 0}" th:text="${lowCount} + ' part(s) at or below minimum stock'"></span></div>
+    <div class="actions">
+      <a class="btn btn-outline" th:href="@{/admin/suppliers}">Suppliers</a>
+      <a class="btn btn-primary" th:href="@{/admin/inventory/new}">+ New part</a>
+    </div>
+  </div>
+  <form class="filters" th:action="@{/admin/inventory}" method="get">
+    <div class="field grow search"><label for="q">Search by part no, name, brand or category</label>
+      <input type="text" id="q" name="q" th:value="${q}" placeholder="Search parts..."></div>
+    <label class="check"><input type="checkbox" name="low" value="true" th:checked="${low}"> Low stock only</label>
+    <button class="btn" type="submit">Filter</button>
+    <a class="btn btn-outline" th:href="@{/admin/inventory}">Reset</a>
+  </form>
+  <th:block th:if="${#lists.isEmpty(parts)}"><div th:replace="~{fragments/components :: empty('&#128295;', 'No parts found', 'Add spare parts to track stock and issue them to job cards.')}"></div></th:block>
+  <div class="table-wrap" th:unless="${#lists.isEmpty(parts)}">
+    <table>
+      <thead><tr><th data-sort>Part no.</th><th data-sort>Name</th><th data-sort>Brand</th><th data-sort>Category</th><th class="num" data-sort>Stock</th><th class="num" data-sort>Min</th><th class="num" data-sort>Sell price</th><th>Rack</th></tr></thead>
+      <tbody>
+        <tr th:each="p : ${parts}" class="row-link" th:attr="data-href=@{/admin/inventory/{id}(id=${p.id})}">
+          <td class="mono"><a th:href="@{/admin/inventory/{id}(id=${p.id})}" th:text="${p.partNo}">P-001</a></td>
+          <td th:text="${p.name}">Name</td>
+          <td th:text="${p.brand != null ? p.brand : '-'}">-</td>
+          <td th:text="${p.category != null ? p.category : '-'}">-</td>
+          <td class="num"><span class="badge" th:classappend="${p.stock.compareTo(p.minStock) <= 0} ? 'b-red' : 'b-green'" th:text="${@fmt.qty(p.stock)} + ' ' + ${p.unit}">0</span></td>
+          <td class="num" th:text="${@fmt.qty(p.minStock)}">0</td>
+          <td class="num" th:text="${@fmt.plain(p.sellingPrice)}">0</td>
+          <td th:text="${p.rackLocation != null ? p.rackLocation : '-'}">-</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</main>
+</body>
+</html>

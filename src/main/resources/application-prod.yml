@@ -1,0 +1,15 @@
+# Production profile: run with  --spring.profiles.active=prod
+# Required environment variables: DB_URL, DB_USERNAME, DB_PASSWORD, ADMIN_EMAIL, ADMIN_PASSWORD
+server:
+  servlet:
+    session:
+      cookie:
+        secure: ${COOKIE_SECURE:true}
+spring:
+  thymeleaf:
+    cache: true
+  jpa:
+    hibernate:
+      ddl-auto: update
+garage:
+  seed-demo: false

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/site :: layout(${estimate.estimateNo}, ~{::main}, 'p-bookings')}">
+<body>
+<main>
+  <div class="page-head">
+    <div class="grow"><div class="crumbs"><a th:href="@{/portal/bookings/{id}(id=${job.booking.id})}" th:text="${job.booking.bookingNo}">BK</a></div>
+      <h1><span th:text="${estimate.estimateNo}">EST</span> <span th:replace="~{fragments/components :: badge(${estimate.status})}"></span></h1>
+      <span class="muted"><span class="plate" th:text="${job.vehicle.regNo}">MH12</span> Sent <span th:text="${@fmt.dateTime(estimate.sentAt)}"></span></span></div>
+  </div>
+  <div class="card">
+    <p th:if="${estimate.note != null and !estimate.note.isBlank()}" th:text="${estimate.note}"></p>
+    <p class="muted" th:if="${estimate.pending}">Please approve or reject each item. Work only starts on the items you approve. You can also call us on
+      <a th:href="${garage.phoneLink}" th:text="${garage.phone}">phone</a>.</p>
+    <form th:action="@{/portal/estimates/{id}/decide(id=${estimate.id})}" method="post" class="est-form">
+      <div class="table-wrap"><table>
+        <thead><tr><th>Item</th><th class="num">Amount incl. GST</th><th>Your decision</th></tr></thead>
+        <tbody><tr th:each="l : ${estimate.lines}" th:classappend="${l.approval.name() == 'REJECTED'} ? 'line-rejected'">
+          <td><span th:text="${l.description}">Item</span> <small class="muted" th:text="'(' + ${l.lineType.label} + ')'"></small></td>
+          <td class="num" th:text="${@fmt.plain(l.total)}">0</td>
+          <td>
+            <div class="decide" th:if="${l.approval.name() == 'AWAITING'}">
+              <label><input type="radio" th:name="'decision-' + ${l.id}" value="APPROVED" th:attr="data-total=${l.total}"> Approve</label>
+              <label><input type="radio" th:name="'decision-' + ${l.id}" value="REJECTED"> Reject</label>
+            </div>
+            <span th:unless="${l.approval.name() == 'AWAITING'}" th:replace="~{fragments/components :: badge(${l.approval})}"></span>
+          </td>
+        </tr></tbody>
+        <tfoot><tr><th>Estimate total</th><th class="num" th:text="${@fmt.plain(estimate.grandTotal)}">0</th><th></th></tr></tfoot>
+      </table></div>
+      <th:block th:if="${estimate.pending}">
+        <div class="field mt"><label for="note">Comments (optional)</label><input type="text" id="note" name="note" maxlength="300"></div>
+        <div class="btn-row">
+          <button class="btn btn-primary" type="submit" data-confirm="Submit your decisions?">Submit decisions</button>
+          <button class="btn btn-outline" type="submit" name="action" value="approveAll" data-confirm="Approve ALL items in this estimate?">Approve all</button>
+          <button class="btn btn-outline" type="submit" name="action" value="rejectAll" data-confirm="Reject ALL items in this estimate?">Reject all</button>
+          <span class="muted">Approved: <strong data-approved-total>₹0.00</strong></span>
+        </div>
+      </th:block>
+    </form>
+  </div>
+  <div class="card" th:if="${!#lists.isEmpty(history)}">
+    <h2>Approval history</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th>When</th><th>Item</th><th class="num">Amount</th><th>Decision</th><th>Via</th></tr></thead>
+      <tbody><tr th:each="h : ${history}">
+        <td class="nowrap" th:text="${@fmt.dateTime(h.decidedAt)}">-</td><td th:text="${h.lineDescription}">-</td>
+        <td class="num" th:text="${@fmt.plain(h.lineTotal)}">0</td>
+        <td><span th:replace="~{fragments/components :: badge(${h.decision})}"></span></td>
+        <td th:text="${h.channel.label}">-</td></tr></tbody></table></div>
+  </div>
+</main>
+</body>
+</html>

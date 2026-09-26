@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/staff :: layout('Garage services', ~{::main}, 'services')}">
+<body>
+<main>
+  <div class="page-head">
+    <div class="grow"><h1>Garage services</h1><span class="muted">Prices are indicative starting prices (excl. GST) and can be edited.</span></div>
+    <div class="actions"><a class="btn btn-primary" th:href="@{/admin/services/new}">+ New service</a></div>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th data-sort>Service</th><th data-sort>Category</th><th class="num" data-sort>Price</th><th class="num">GST</th><th class="num">Hours</th><th>Interval</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+        <tr th:each="s : ${services}">
+          <td><span th:text="${(s.icon != null ? s.icon + ' ' : '') + s.name}">Service</span></td>
+          <td th:text="${s.category.label}">Category</td>
+          <td class="num" th:text="${s.basePrice.signum() > 0 ? @fmt.plain(s.basePrice) : 'On inspection'}">0</td>
+          <td class="num" th:text="${@fmt.qty(s.gstRate)} + '%'">18%</td>
+          <td class="num" th:text="${s.estimatedHours != null ? @fmt.qty(s.estimatedHours) : '-'}">-</td>
+          <td th:text="${s.intervalKm != null ? s.intervalKm + ' km' : (s.intervalMonths != null ? s.intervalMonths + ' months' : '-')}">-</td>
+          <td><span class="badge" th:classappend="${s.active} ? 'b-green' : 'b-gray'" th:text="${s.active} ? 'Active' : 'Hidden'">Active</span></td>
+          <td class="right"><a class="btn btn-outline btn-sm" th:href="@{/admin/services/{id}/edit(id=${s.id})}">Edit</a></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</main>
+</body>
+</html>

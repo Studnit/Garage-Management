@@ -1,0 +1,48 @@
+# Production-style stack: application + PostgreSQL.
+#   1. Copy .env.example to .env and set real passwords
+#   2. docker compose up -d --build
+#   3. Open http://localhost:8080 and sign in with ADMIN_EMAIL / ADMIN_PASSWORD
+services:
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: citycars
+      POSTGRES_USER: citycars
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD in .env}
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U citycars -d citycars"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      # Set COOKIE_SECURE=true once the site is served over HTTPS (recommended)
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
+      DB_URL: jdbc:postgresql://db:5432/citycars
+      DB_USERNAME: citycars
+      DB_PASSWORD: ${DB_PASSWORD}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:?set ADMIN_EMAIL in .env}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?set ADMIN_PASSWORD in .env}
+      GARAGE_GSTIN: ${GARAGE_GSTIN:-}
+      GARAGE_PAN: ${GARAGE_PAN:-}
+      GARAGE_UPI_ID: ${GARAGE_UPI_ID:-}
+      GARAGE_BANK_DETAILS: ${GARAGE_BANK_DETAILS:-}
+      GARAGE_EMAIL: ${GARAGE_EMAIL:-}
+    volumes:
+      - uploads:/app/data/uploads
+
+volumes:
+  dbdata:
+  uploads:

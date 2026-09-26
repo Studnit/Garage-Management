@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title th:text="${invoice.invoiceNo} + ' | ' + ${garage.name}">Invoice</title>
+  <link rel="icon" type="image/svg+xml" th:href="@{/img/favicon.svg}">
+  <link rel="stylesheet" th:href="@{/css/print.css}">
+</head>
+<body>
+<div class="toolbar">
+  <button type="button" data-print>Print</button>
+  <a class="alt" th:href="@{/admin/invoices/{id}/pdf(id=${invoice.id})}">Download PDF</a>
+  <a th:href="@{/admin/invoices/{id}(id=${invoice.id})}">Back</a>
+</div>
+<div class="page">
+  <div class="stamp" th:if="${invoice.paid}">PAID</div>
+  <div class="hd">
+    <div>
+      <h1 th:text="${garage.name}">City Car Services</h1>
+      <div class="co">
+        <span th:text="${garage.tagline}">tagline</span><br>
+        <span th:text="${garage.address}">address</span><br>
+        Phone: <span th:text="${garage.phone}">phone</span>
+        <span th:if="${!#strings.isEmpty(garage.email)}" th:text="' | ' + ${garage.email}"></span><br>
+        <span th:if="${!#strings.isEmpty(garage.gstin)}">GSTIN: <b th:text="${garage.gstin}"></b> &nbsp;</span>
+        <span th:if="${!#strings.isEmpty(garage.pan)}">PAN: <b th:text="${garage.pan}"></b></span>
+      </div>
+    </div>
+    <div class="doc">
+      <h2>TAX INVOICE</h2>
+      <table>
+        <tr><td>Invoice no.</td><td><b th:text="${invoice.invoiceNo}">INV</b></td></tr>
+        <tr><td>Date</td><td th:text="${@fmt.date(invoice.invoiceDate)}">date</td></tr>
+        <tr th:if="${invoice.dueDate != null}"><td>Due date</td><td th:text="${@fmt.date(invoice.dueDate)}">date</td></tr>
+        <tr><td>Job card</td><td th:text="${invoice.jobCard.jobNo}">JC</td></tr>
+        <tr><td>Place of supply</td><td th:text="${garage.stateName + ' (' + garage.stateCode + ')'}">Maharashtra (27)</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="two">
+    <div class="box">
+      <h4>Billed to</h4>
+      <b th:text="${invoice.customer.name}">Customer</b><br>
+      <span th:if="${invoice.customer.address != null}" th:text="${invoice.customer.address}"></span><br th:if="${invoice.customer.address != null}">
+      Mobile: <span th:text="${invoice.customer.mobile}">98</span><br>
+      <span th:if="${!#strings.isEmpty(invoice.customer.gstin)}">GSTIN: <span th:text="${invoice.customer.gstin}"></span></span>
+    </div>
+    <div class="box">
+      <h4>Vehicle</h4>
+      <b th:text="${invoice.vehicle.regNo}">MH12AB1234</b> - <span th:text="${invoice.vehicle.displayName}">Car</span><br>
+      Odometer in: <span th:text="${invoice.jobCard.odometerIn} + ' km'">0 km</span>
+      <span th:if="${invoice.jobCard.odometerOut != null}" th:text="' | out: ' + ${invoice.jobCard.odometerOut} + ' km'"></span><br>
+      <span th:if="${invoice.vehicle.vin != null}" th:text="'VIN: ' + ${invoice.vehicle.vin}"></span>
+    </div>
+  </div>
+
+  <table class="items">
+    <thead><tr><th>#</th><th>Description</th><th>HSN/SAC</th><th class="r">Qty</th><th class="r">Rate</th><th class="r">Taxable</th><th class="r">GST %</th><th class="r">CGST</th><th class="r">SGST</th><th class="r">Amount</th></tr></thead>
+    <tbody>
+      <tr th:each="l, st : ${invoice.lines}">
+        <td th:text="${st.count}">1</td>
+        <td th:text="${l.description}">Item</td>
+        <td th:text="${l.hsnSac != null ? l.hsnSac : ''}"></td>
+        <td class="r" th:text="${@fmt.qty(l.quantity)}">1</td>
+        <td class="r" th:text="${@fmt.plain(l.unitPrice)}">0</td>
+        <td class="r" th:text="${@fmt.plain(l.taxableValue)}">0</td>
+        <td class="r" th:text="${@fmt.qty(l.gstRate)}">18</td>
+        <td class="r" th:text="${@fmt.plain(l.cgst)}">0</td>
+        <td class="r" th:text="${@fmt.plain(l.sgst)}">0</td>
+        <td class="r" th:text="${@fmt.plain(l.lineTotal)}">0</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="tot">
+    <div>
+      <div class="small"><b>Amount in words</b><br><span th:text="${@fmt.words(invoice.total)}">words</span></div>
+      <div class="small" style="margin-top:8px" th:if="${!#strings.isEmpty(garage.bankDetails) or !#strings.isEmpty(garage.upiId)}">
+        <b>Payment details</b><br>
+        <span th:if="${!#strings.isEmpty(garage.upiId)}" th:text="'UPI: ' + ${garage.upiId}"></span><br th:if="${!#strings.isEmpty(garage.upiId)}">
+        <span th:if="${!#strings.isEmpty(garage.bankDetails)}" th:text="${garage.bankDetails}"></span>
+      </div>
+      <div class="small" style="margin-top:8px" th:if="${!#lists.isEmpty(payments)}">
+        <b>Payments received</b>
+        <div th:each="p : ${payments}" th:if="${p.status.name() == 'RECEIVED'}"
+             th:text="${@fmt.date(p.paidAt.toLocalDate()) + ' - ' + p.mode.label + ' - ' + @fmt.money(p.amount) + ' (' + p.receiptNo + ')'}"></div>
+      </div>
+      <div class="small" style="margin-top:8px" th:if="${invoice.notes != null and !invoice.notes.isBlank()}"><b>Notes</b><br><span th:text="${invoice.notes}"></span></div>
+    </div>
+    <table>
+      <tr><td>Subtotal</td><td th:text="${@fmt.plain(invoice.subtotal)}">0</td></tr>
+      <tr th:if="${invoice.discount.signum() > 0}"><td>Discount</td><td th:text="'-' + ${@fmt.plain(invoice.discount)}">0</td></tr>
+      <tr><td>Taxable value</td><td th:text="${@fmt.plain(invoice.taxableValue)}">0</td></tr>
+      <tr><td>CGST</td><td th:text="${@fmt.plain(invoice.cgst)}">0</td></tr>
+      <tr><td>SGST</td><td th:text="${@fmt.plain(invoice.sgst)}">0</td></tr>
+      <tr><td>Round off</td><td th:text="${@fmt.plain(invoice.roundOff)}">0</td></tr>
+      <tr class="grand"><td>Total</td><td th:text="${@fmt.money(invoice.total)}">0</td></tr>
+      <tr><td>Paid</td><td class="paid" th:text="${@fmt.money(invoice.amountPaid)}">0</td></tr>
+      <tr><td>Balance due</td><td th:class="${invoice.balance.signum() > 0} ? 'due' : 'paid'" th:text="${@fmt.money(invoice.balance)}">0</td></tr>
+    </table>
+  </div>
+
+  <div class="small" style="margin-top:14px" th:if="${!#strings.isEmpty(garage.invoiceTerms)}">
+    <b>Terms &amp; conditions</b><br><span th:text="${garage.invoiceTerms}">terms</span>
+  </div>
+  <div class="sign"><div>Customer signature</div><div>For <span th:text="${garage.name}">City Car Services</span><br>Authorised signatory</div></div>
+  <p class="small" style="text-align:center;margin-top:14px">Thank you for choosing <span th:text="${garage.name}"></span> &middot; <span th:text="${garage.hoursText}"></span></p>
+</div>
+<script th:src="@{/js/app.js}" defer></script>
+</body>
+</html>

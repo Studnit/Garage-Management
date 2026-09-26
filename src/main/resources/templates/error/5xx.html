@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/site :: layout('Something went wrong', ~{::main}, 'error')}">
+<body>
+<main class="error-page">
+  <div class="code" th:text="${status != null ? status : 'Oops'}">500</div>
+  <h1>Something went wrong</h1>
+  <p class="muted">We hit an unexpected problem. Your data is safe. Please try again, and if it keeps happening call us on
+    <a th:href="${garage.phoneLink}" th:text="${garage.phone}">+91</a>.</p>
+  <div class="btn-row" style="justify-content:center">
+    <a class="btn btn-primary" th:href="@{/}">Go to home</a>
+  </div>
+</main>
+</body>
+</html>

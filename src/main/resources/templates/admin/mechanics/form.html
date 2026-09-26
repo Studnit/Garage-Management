@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/staff :: layout(${isNew} ? 'Add mechanic' : 'Edit mechanic', ~{::main}, 'mechanics')}">
+<body>
+<main>
+  <div class="page-head"><div class="grow"><div class="crumbs"><a th:href="@{/admin/mechanics}">Mechanics</a></div>
+    <h1 th:text="${isNew} ? 'Add mechanic' : 'Edit mechanic'">Mechanic</h1></div></div>
+  <div class="alert alert-danger" th:if="${error != null}" th:text="${error}">Error</div>
+  <div class="card">
+    <form th:action="${isNew} ? @{/admin/mechanics/new} : @{/admin/mechanics/{id}/edit(id=${mechanic.id})}" th:object="${form}" method="post" novalidate>
+      <div th:replace="~{fragments/components :: formerrors}"></div>
+      <div class="form-grid">
+        <div th:replace="~{fragments/components :: input('Full name *', 'fullName', 'text')}"></div>
+        <div th:replace="~{fragments/components :: input('Login email *', 'email', 'email')}"></div>
+        <div th:replace="~{fragments/components :: input('Phone', 'phone', 'tel')}"></div>
+        <th:block th:if="${isNew}"><div th:replace="~{fragments/components :: input('Initial password * (min 8 chars)', 'password', 'password')}"></div></th:block>
+        <div th:replace="~{fragments/components :: input('Employee code', 'employeeCode', 'text')}"></div>
+        <div th:replace="~{fragments/components :: input('Specialisation', 'specialization', 'text')}"></div>
+        <div th:replace="~{fragments/components :: input('Experience (years)', 'experienceYears', 'number')}"></div>
+        <div class="field"><span class="label">Status</span><label class="check"><input type="checkbox" th:field="*{active}"> Active</label></div>
+        <div class="full" th:replace="~{fragments/components :: textarea('Skills', 'skills')}"></div>
+      </div>
+      <p class="hint" th:if="${isNew}">The mechanic must change this password at first sign-in.</p>
+      <div class="btn-row mt">
+        <button class="btn btn-primary" type="submit">Save</button>
+        <a class="btn btn-outline" th:href="@{/admin/mechanics}">Cancel</a>
+      </div>
+    </form>
+  </div>
+</main>
+</body>
+</html>

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/staff :: layout('Vehicles', ~{::main}, 'vehicles')}">
+<body>
+<main>
+  <div class="page-head">
+    <div class="grow"><h1>Vehicles</h1><span class="muted"><span data-filter-count th:text="${#lists.size(vehicles)}">0</span> shown</span></div>
+    <div class="actions"><a class="btn btn-primary" th:href="@{/admin/customers}">+ Add via customer</a></div>
+  </div>
+  <form class="filters" th:action="@{/admin/vehicles}" method="get" data-no-loading>
+    <div class="field grow search"><label for="q">Search by number, make, model or owner</label>
+      <input type="text" id="q" name="q" th:value="${q}" placeholder="MH12..." data-filter="#vehicleTable"></div>
+    <button class="btn" type="submit">Search</button>
+    <a class="btn btn-outline" th:href="@{/admin/vehicles}" th:if="${q != null}">Clear</a>
+  </form>
+  <th:block th:if="${#lists.isEmpty(vehicles)}"><div th:replace="~{fragments/components :: empty('&#128663;', 'No vehicles found', 'Vehicles are added from a customer profile.')}"></div></th:block>
+  <div class="table-wrap" th:unless="${#lists.isEmpty(vehicles)}">
+    <table id="vehicleTable">
+      <thead><tr><th data-sort>Number</th><th data-sort>Vehicle</th><th data-sort>Owner</th><th data-sort>Fuel</th><th data-sort class="num">Odometer</th><th>Insurance</th><th>PUC</th><th>Next service</th></tr></thead>
+      <tbody>
+        <tr th:each="v : ${vehicles}" class="row-link" th:attr="data-href=@{/admin/vehicles/{id}(id=${v.id})}">
+          <td><a th:href="@{/admin/vehicles/{id}(id=${v.id})}"><span class="plate" th:text="${v.regNo}">MH12</span></a></td>
+          <td th:text="${v.displayName}">Car</td>
+          <td th:text="${v.customer.name}">Owner</td>
+          <td th:text="${v.fuelType.label}">Petrol</td>
+          <td class="num" th:text="${@fmt.plain(T(java.math.BigDecimal).valueOf(v.odometer)).replace('.00','')}">0</td>
+          <td><span th:replace="~{fragments/components :: expiry(${v.insuranceExpiry})}"></span></td>
+          <td><span th:replace="~{fragments/components :: expiry(${v.pucExpiry})}"></span></td>
+          <td><span th:replace="~{fragments/components :: expiry(${v.nextServiceDate})}"></span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</main>
+</body>
+</html>

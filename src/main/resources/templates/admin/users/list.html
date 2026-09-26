@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/staff :: layout('Users & roles', ~{::main}, 'users')}">
+<body>
+<main>
+  <div class="page-head">
+    <div class="grow"><h1>Users &amp; roles</h1><span class="muted">Staff and customer logins</span></div>
+    <div class="actions"><a class="btn btn-primary" th:href="@{/admin/users/new}">+ New staff user</a></div>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th data-sort>Name</th><th data-sort>Email</th><th data-sort>Role</th><th>Status</th><th data-sort>Last login</th><th></th></tr></thead>
+      <tbody>
+        <tr th:each="u : ${users}">
+          <td th:text="${u.fullName}">Name</td>
+          <td th:text="${u.email}">mail</td>
+          <td><span class="badge b-indigo" th:text="${u.role.label}">Role</span></td>
+          <td>
+            <span class="badge b-red" th:if="${u.locked}">Locked</span>
+            <span class="badge b-gray" th:if="${!u.enabled}">Disabled</span>
+            <span class="badge b-green" th:if="${u.enabled and !u.locked}">Active</span>
+          </td>
+          <td class="nowrap" th:text="${@fmt.dateTime(u.lastLoginAt)}">-</td>
+          <td class="right nowrap">
+            <a class="btn btn-outline btn-sm" th:if="${u.role.name() != 'CUSTOMER'}" th:href="@{/admin/users/{id}/edit(id=${u.id})}">Edit</a>
+            <form th:action="@{/admin/users/{id}/unlock(id=${u.id})}" method="post" style="display:inline" th:if="${u.locked}">
+              <button class="btn btn-outline btn-sm" type="submit">Unlock</button></form>
+            <form th:action="@{/admin/users/{id}/reset(id=${u.id})}" method="post" style="display:inline" data-confirm="Reset this user's password? A temporary password will be shown once.">
+              <button class="btn btn-outline btn-sm" type="submit">Reset password</button></form>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</main>
+</body>
+</html>

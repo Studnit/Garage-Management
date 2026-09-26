@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<body>
+
+<!-- Flash messages become toasts (see app.js); a no-JS fallback is included. -->
+<div th:fragment="flash">
+  <ul class="toast-src" hidden>
+    <li data-type="success" th:if="${success != null}" th:text="${success}"></li>
+    <li data-type="error" th:if="${error != null}" th:text="${error}"></li>
+    <li data-type="info" th:if="${info != null}" th:text="${info}"></li>
+  </ul>
+  <noscript>
+    <div class="alert alert-success flash-fallback" th:if="${success != null}" th:text="${success}"></div>
+    <div class="alert alert-danger flash-fallback" th:if="${error != null}" th:text="${error}"></div>
+    <div class="alert alert-info flash-fallback" th:if="${info != null}" th:text="${info}"></div>
+  </noscript>
+  <div class="alert alert-warn" th:if="${tempPassword != null}">
+    <strong>Temporary password for <span th:text="${tempFor}">user</span></strong> - shown only once. Share it securely;
+    the user must change it at first sign in.<br>
+    <span class="secret" th:text="${tempPassword}">abc123</span>
+    <button type="button" class="btn btn-outline btn-sm" th:attr="data-copy=${tempPassword}">Copy</button>
+  </div>
+</div>
+
+<span th:fragment="badge(e)" class="badge" th:classappend="${e.css}" th:text="${e.label}">Status</span>
+
+<div th:fragment="empty(icon, title, text)" class="empty">
+  <span class="big" th:text="${icon}">&#128203;</span>
+  <h3 th:text="${title}">Nothing here yet</h3>
+  <p th:text="${text}">Details</p>
+</div>
+
+<!-- Job progress timeline for a booking -->
+<ol th:fragment="timeline(booking)" class="timeline" th:classappend="${booking.status.name() == 'CANCELLED'} ? 'cancelled'">
+  <li th:each="s : ${flow}"
+      th:classappend="${booking.status.name() != 'CANCELLED'} ? (${s.step} lt ${booking.status.step} ? 'done' : (${s.step} == ${booking.status.step} ? 'current' : ''))">
+    <span th:text="${s.label}">Step</span>
+    <small th:each="l : ${booking.logs}" th:if="${l.status == s}" th:text="${@fmt.dateTime(l.changedAt)}"></small>
+  </li>
+</ol>
+
+<!-- Expiry date with colour: red = expired, amber = within 30 days -->
+<span th:fragment="expiry(date)">
+  <th:block th:if="${date == null}">-</th:block>
+  <span th:if="${date != null}" class="badge"
+        th:classappend="${date.isBefore(today)} ? 'b-red' : (${date.isBefore(today.plusDays(31))} ? 'b-amber' : 'b-green')"
+        th:text="${@fmt.date(date)}">date</span>
+</span>
+
+<span th:fragment="stars(rating)" class="star-text" th:text="${@fmt.stars(rating)}" th:title="${rating} + ' out of 5'">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
+
+<!-- Form fields: must be used inside a form that has th:object -->
+<div th:fragment="input(label, field, type)" class="field" th:classappend="${#fields.hasErrors(field)} ? 'has-error'">
+  <label th:for="${field}" th:text="${label}">Label</label>
+  <input th:type="${type}" th:field="*{__${field}__}">
+  <span class="err" th:if="${#fields.hasErrors(field)}" th:errors="*{__${field}__}">error</span>
+</div>
+
+<div th:fragment="textarea(label, field)" class="field" th:classappend="${#fields.hasErrors(field)} ? 'has-error'">
+  <label th:for="${field}" th:text="${label}">Label</label>
+  <textarea th:field="*{__${field}__}"></textarea>
+  <span class="err" th:if="${#fields.hasErrors(field)}" th:errors="*{__${field}__}">error</span>
+</div>
+
+<div th:fragment="select(label, field, options)" class="field" th:classappend="${#fields.hasErrors(field)} ? 'has-error'">
+  <label th:for="${field}" th:text="${label}">Label</label>
+  <select th:field="*{__${field}__}">
+    <option th:each="o : ${options}" th:value="${o.name()}" th:text="${o.label}">Option</option>
+  </select>
+  <span class="err" th:if="${#fields.hasErrors(field)}" th:errors="*{__${field}__}">error</span>
+</div>
+
+<div th:fragment="formerrors" class="alert alert-danger" th:if="${#fields.hasErrors('*')}">
+  Please correct the highlighted fields and try again.
+</div>
+
+<!-- Address / hours block used on public pages and print -->
+<address th:fragment="contact" style="font-style:normal">
+  <strong th:text="${garage.name}">City Car Services</strong><br>
+  <span th:text="${garage.address}">Address</span><br>
+  <a th:href="${garage.phoneLink}" th:text="${garage.phone}">+91</a><br>
+  <span th:text="${garage.hoursText}">Hours</span>
+</address>
+
+</body>
+</html>

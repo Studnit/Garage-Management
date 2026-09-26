@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/site :: layout(${invoice.invoiceNo}, ~{::main}, 'p-invoices')}">
+<body>
+<main>
+  <div class="page-head">
+    <div class="grow"><div class="crumbs"><a th:href="@{/portal/invoices}">My invoices</a></div>
+      <h1><span th:text="${invoice.invoiceNo}">INV</span> <span th:replace="~{fragments/components :: badge(${invoice.paymentStatus})}"></span></h1>
+      <span class="muted"><span class="plate" th:text="${invoice.vehicle.regNo}">MH12</span> <span th:text="${@fmt.date(invoice.invoiceDate)}"></span></span></div>
+    <div class="actions">
+      <a class="btn btn-primary" th:href="@{/portal/invoices/{id}/print(id=${invoice.id})}" target="_blank" rel="noopener">Print</a>
+      <a class="btn btn-outline" th:href="@{/portal/invoices/{id}/pdf(id=${invoice.id})}">Download PDF</a>
+    </div>
+  </div>
+  <div class="grid g-side">
+    <div>
+      <div class="card"><h2>Charges</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Description</th><th class="num">Qty</th><th class="num">Taxable</th><th class="num">GST</th><th class="num">Total</th></tr></thead>
+          <tbody><tr th:each="l : ${invoice.lines}">
+            <td th:text="${l.description}">Item</td><td class="num" th:text="${@fmt.qty(l.quantity)}">1</td>
+            <td class="num" th:text="${@fmt.plain(l.taxableValue)}">0</td><td class="num" th:text="${@fmt.qty(l.gstRate)} + '%'">18%</td>
+            <td class="num" th:text="${@fmt.plain(l.lineTotal)}">0</td></tr></tbody></table></div>
+        <div class="totals mt">
+          <div><span>Subtotal</span><span th:text="${@fmt.plain(invoice.subtotal)}">0</span></div>
+          <div th:if="${invoice.discount.signum() > 0}"><span>Discount</span><span th:text="'-' + ${@fmt.plain(invoice.discount)}">0</span></div>
+          <div><span>CGST</span><span th:text="${@fmt.plain(invoice.cgst)}">0</span></div>
+          <div><span>SGST</span><span th:text="${@fmt.plain(invoice.sgst)}">0</span></div>
+          <div><span>Round off</span><span th:text="${@fmt.plain(invoice.roundOff)}">0</span></div>
+          <div class="grand"><span>Total</span><span th:text="${@fmt.money(invoice.total)}">0</span></div>
+          <div><span>Paid</span><span th:text="${@fmt.money(invoice.amountPaid)}">0</span></div>
+          <div><strong>Balance</strong><strong th:text="${@fmt.money(invoice.balance)}">0</strong></div>
+        </div>
+      </div>
+      <div class="card"><h2>Payments</h2>
+        <p class="muted" th:if="${#lists.isEmpty(payments)}">No payments yet.</p>
+        <div class="table-wrap" th:unless="${#lists.isEmpty(payments)}"><table>
+          <thead><tr><th>Receipt</th><th>Date</th><th>Mode</th><th class="num">Amount</th><th>Status</th></tr></thead>
+          <tbody><tr th:each="p : ${payments}">
+            <td class="mono" th:text="${p.receiptNo}">RCT</td><td th:text="${@fmt.dateTime(p.paidAt)}">-</td>
+            <td th:text="${p.mode.label}">UPI</td><td class="num" th:text="${@fmt.plain(p.amount)}">0</td>
+            <td><span th:replace="~{fragments/components :: badge(${p.status})}"></span></td></tr></tbody></table></div></div>
+    </div>
+    <div>
+      <div class="card" th:if="${invoice.balance.signum() > 0}">
+        <h2>Pay online</h2>
+        <p class="muted">Pay by UPI, bank transfer or card at the counter, then submit the details below. We confirm it after verifying the payment.</p>
+        <p th:if="${upiLink != null}"><a class="btn btn-blue btn-block" th:href="${upiLink}">Pay with UPI app</a></p>
+        <p class="hint" th:if="${!#strings.isEmpty(garage.upiId)}" th:text="'UPI ID: ' + ${garage.upiId}"></p>
+        <p class="hint" th:if="${!#strings.isEmpty(garage.bankDetails)}" th:text="${garage.bankDetails}"></p>
+        <form th:action="@{/portal/invoices/{id}/pay(id=${invoice.id})}" method="post">
+          <div class="field"><label for="amount">Amount paid (₹)</label>
+            <input type="number" step="0.01" min="1" th:max="${invoice.balance}" id="amount" name="amount" th:value="${invoice.balance}" required></div>
+          <div class="field"><label for="mode">Mode</label>
+            <select id="mode" name="mode"><option th:each="m : ${modes}" th:value="${m.name()}" th:text="${m.label}">UPI</option></select></div>
+          <div class="field"><label for="reference">Transaction reference / UTR</label><input type="text" id="reference" name="reference" maxlength="80" required></div>
+          <button class="btn btn-primary btn-block" type="submit">Submit payment details</button>
+        </form>
+      </div>
+      <div class="card" th:unless="${invoice.balance.signum() > 0}"><h2>Paid in full</h2><p class="muted">Thank you for choosing City Car Services.</p></div>
+    </div>
+  </div>
+</main>
+</body>
+</html>

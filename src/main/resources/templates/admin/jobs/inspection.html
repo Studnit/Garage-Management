@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/staff :: layout('Vehicle inspection', ~{::main}, 'jobs')}">
+<body>
+<main>
+  <div class="page-head">
+    <div class="grow">
+      <div class="crumbs"><a th:href="@{/admin/jobs}">Job cards</a> / <a th:href="@{/admin/jobs/{id}(id=${job.id})}" th:text="${job.jobNo}">JC</a></div>
+      <h1>Digital vehicle inspection</h1>
+      <span class="muted"><span class="plate" th:text="${job.vehicle.regNo}">MH12</span> <span th:text="${job.vehicle.displayName}"></span>
+        <span class="badge b-green" th:if="${inspection != null and inspection.submitted}">Submitted</span>
+        <span class="badge b-amber" th:if="${inspection != null and !inspection.submitted}">In progress</span></span>
+    </div>
+    <div class="actions"><a class="btn btn-outline" th:href="@{/admin/jobs/{id}(id=${job.id})}">Back to job card</a></div>
+  </div>
+
+  <div class="card" th:if="${inspection == null}">
+    <div th:replace="~{fragments/components :: empty('&#128269;', 'Inspection not started', 'The inspection opens once the booking moves to the Inspection stage.')}"></div>
+  </div>
+
+  <!-- ===== Editable form ===== -->
+  <th:block th:if="${inspection != null and canEdit and !inspection.submitted}">
+    <form th:action="@{/admin/jobs/{id}/inspection(id=${job.id})}" th:object="${form}" method="post" novalidate>
+      <div th:replace="~{fragments/components :: formerrors}"></div>
+      <div class="card">
+        <h2>Checklist</h2>
+        <div class="field" style="max-width:260px"><label for="odometerReading">Odometer reading (km)</label>
+          <input type="number" min="0" th:field="*{odometerReading}"></div>
+        <div class="insp-row" th:each="it, st : *{items}">
+          <input type="hidden" th:field="*{items[__${st.index}__].area}">
+          <div class="grow">
+            <strong th:text="${it.area.label}">Engine</strong><br>
+            <small class="muted" th:text="${it.area.hint}">hint</small>
+          </div>
+          <select th:field="*{items[__${st.index}__].condition}" th:aria-label="${it.area.label} + ' condition'">
+            <option th:each="c : ${conditions}" th:value="${c.name()}" th:text="${c.label}">Good</option>
+          </select>
+          <input type="text" maxlength="500" placeholder="Remarks" th:field="*{items[__${st.index}__].remarks}" th:aria-label="${it.area.label} + ' remarks'">
+        </div>
+      </div>
+      <div class="card">
+        <h2>Findings</h2>
+        <div class="form-grid">
+          <div class="field full"><label for="notes">Inspection notes</label><textarea th:field="*{notes}"></textarea></div>
+          <div class="field"><label for="defectiveParts">Defective parts found</label><textarea th:field="*{defectiveParts}"></textarea></div>
+          <div class="field"><label for="recommendedRepairs">Recommended repairs</label><textarea th:field="*{recommendedRepairs}"></textarea></div>
+          <div class="field"><label for="estimatedCost">Estimated repair cost (₹, indicative)</label>
+            <input type="number" step="0.01" min="0" th:field="*{estimatedCost}"></div>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-outline" type="submit" name="action" value="save">Save draft</button>
+        <button class="btn btn-primary" type="submit" name="action" value="submit"
+                data-confirm="Submit the inspection report? The customer will be able to see it.">Submit report</button>
+      </div>
+    </form>
+  </th:block>
+
+  <!-- ===== Read-only report ===== -->
+  <th:block th:if="${inspection != null and (!canEdit or inspection.submitted)}">
+    <div class="card">
+      <h2>Inspection report</h2>
+      <p class="muted" th:if="${inspection.odometerReading != null}" th:text="'Odometer: ' + ${inspection.odometerReading} + ' km'"></p>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Area</th><th>Condition</th><th>Remarks</th></tr></thead>
+        <tbody><tr th:each="it : ${inspection.items}">
+          <td th:text="${it.area.label}">Engine</td>
+          <td><span th:replace="~{fragments/components :: badge(${it.condition})}"></span></td>
+          <td th:text="${it.remarks != null ? it.remarks : ''}"></td>
+        </tr></tbody></table></div>
+    </div>
+    <div class="card">
+      <h2>Findings</h2>
+      <dl class="kv">
+        <dt>Notes</dt><dd th:text="${inspection.notes != null ? inspection.notes : '-'}">-</dd>
+        <dt>Defective parts</dt><dd th:text="${inspection.defectiveParts != null ? inspection.defectiveParts : '-'}">-</dd>
+        <dt>Recommended repairs</dt><dd th:text="${inspection.recommendedRepairs != null ? inspection.recommendedRepairs : '-'}">-</dd>
+        <dt>Estimated cost</dt><dd th:text="${inspection.estimatedCost != null ? @fmt.money(inspection.estimatedCost) : '-'}">-</dd>
+        <dt>Submitted</dt><dd th:text="${inspection.submitted ? @fmt.dateTime(inspection.submittedAt) : 'Not yet'}">-</dd>
+      </dl>
+      <form th:if="${canEdit and inspection.submitted}" th:action="@{/admin/jobs/{id}/inspection/reopen(id=${job.id})}" method="post"
+            data-confirm="Re-open the inspection for editing?">
+        <button class="btn btn-outline" type="submit">Re-open for editing</button>
+      </form>
+    </div>
+  </th:block>
+
+  <!-- ===== Photos & videos ===== -->
+  <div class="card" th:if="${inspection != null}">
+    <h2>Photos &amp; videos</h2>
+    <p class="muted" th:if="${#lists.isEmpty(inspection.media)}">No files uploaded yet.</p>
+    <div class="media-grid" th:unless="${#lists.isEmpty(inspection.media)}">
+      <div class="media-item" th:each="m : ${inspection.media}">
+        <a th:if="${m.kind.name() == 'PHOTO'}" th:href="@{/media/{id}(id=${m.id})}" target="_blank" rel="noopener">
+          <img th:src="@{/media/{id}(id=${m.id})}" th:alt="${m.caption != null ? m.caption : m.originalName}" loading="lazy"></a>
+        <video th:if="${m.kind.name() == 'VIDEO'}" controls preload="metadata" th:src="@{/media/{id}(id=${m.id})}"></video>
+        <div class="cap"><small th:text="${m.caption != null and !m.caption.isBlank() ? m.caption : m.originalName}">caption</small></div>
+        <form th:if="${canEdit and !inspection.submitted}" th:action="@{/admin/jobs/{id}/inspection/media/{mid}/delete(id=${job.id}, mid=${m.id})}"
+              method="post" data-confirm="Remove this file?">
+          <button class="btn btn-outline btn-sm" type="submit">Remove</button></form>
+      </div>
+    </div>
+    <form th:if="${canEdit and !inspection.submitted}" th:action="@{/admin/jobs/{id}/inspection/media(id=${job.id})}" method="post" enctype="multipart/form-data" class="mt">
+      <div class="filters">
+        <div class="field grow"><label for="file">Photo or video (JPG, PNG, WebP, MP4, WebM)</label>
+          <input type="file" id="file" name="file" accept="image/jpeg,image/png,image/webp,video/mp4,video/webm" required></div>
+        <div class="field grow"><label for="caption">Caption</label><input type="text" id="caption" name="caption" maxlength="200"></div>
+        <button class="btn btn-primary" type="submit">Upload</button>
+      </div>
+      <p class="hint">Save the checklist first: uploading reloads the page.</p>
+    </form>
+  </div>
+</main>
+</body>
+</html>

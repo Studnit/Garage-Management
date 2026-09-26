@@ -1,0 +1,94 @@
+# City Car Services - Garage Management System
+# Default profile runs on an embedded file-based H2 database (persistent in ./data).
+# For production use the "prod" profile with PostgreSQL / MySQL (see README.md).
+server:
+  port: ${PORT:8080}
+  forward-headers-strategy: framework
+  compression:
+    enabled: true
+  servlet:
+    session:
+      timeout: 30m
+      cookie:
+        http-only: true
+        same-site: lax
+        secure: ${COOKIE_SECURE:false}
+  error:
+    include-stacktrace: never
+    include-message: never
+    include-exception: false
+    whitelabel:
+      enabled: false
+
+spring:
+  application:
+    name: city-car-services
+  datasource:
+    url: ${DB_URL:jdbc:h2:file:./data/garagedb;DB_CLOSE_ON_EXIT=FALSE}
+    username: ${DB_USERNAME:sa}
+    password: ${DB_PASSWORD:}
+  jpa:
+    hibernate:
+      ddl-auto: ${DDL_AUTO:update}
+    open-in-view: true
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: Asia/Kolkata
+  thymeleaf:
+    cache: ${THYMELEAF_CACHE:true}
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 120MB
+  h2:
+    console:
+      enabled: false
+  web:
+    resources:
+      cache:
+        cachecontrol:
+          max-age: 7d
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: never
+
+logging:
+  level:
+    root: INFO
+    com.citycarservices: INFO
+
+garage:
+  name: City Car Services
+  tagline: Multi-brand car repair & service centre
+  address: "Shop No. 1, Radha Chowk, near Orchid Hotel, Mumbai Bypass Road, Baner, Pune, Maharashtra 411045"
+  phone: "+91 86982 28740"
+  phone-digits: "918698228740"
+  email: ${GARAGE_EMAIL:}
+  hours-text: "Monday–Sunday, 9:00 AM–9:00 PM"
+  open-hour: 9
+  close-hour: 21
+  # Fill these in for GST invoices (left blank on purpose - never invented)
+  gstin: ${GARAGE_GSTIN:}
+  pan: ${GARAGE_PAN:}
+  state-name: Maharashtra
+  state-code: "27"
+  upi-id: ${GARAGE_UPI_ID:}
+  bank-details: ${GARAGE_BANK_DETAILS:}
+  map-url: "https://www.google.com/maps/search/?api=1&query=City+Car+Services+Baner+Pune"
+  upload-dir: ${UPLOAD_DIR:./data/uploads}
+  seed-demo: ${SEED_DEMO:true}
+  admin-email: ${ADMIN_EMAIL:admin@citycarservices.in}
+  admin-password: ${ADMIN_PASSWORD:}
+  reminder-lead-days: 30
+  reminder-km-lead: 500
+  reminder-cron: "0 0 9 * * *"
+  notification-webhook-url: ${NOTIFY_WEBHOOK_URL:}
+  mail-from: ${MAIL_FROM:}
+  invoice-terms: "Goods/services once delivered will not be taken back. Warranty on parts as per manufacturer terms. Subject to Pune jurisdiction."

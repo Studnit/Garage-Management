@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/staff :: layout('Suppliers', ~{::main}, 'inventory')}">
+<body>
+<main>
+  <div class="page-head"><div class="grow"><div class="crumbs"><a th:href="@{/admin/inventory}">Inventory</a></div><h1>Suppliers</h1></div></div>
+  <div class="alert alert-danger" th:if="${error != null}" th:text="${error}">Error</div>
+  <div class="grid g-side">
+    <div class="card">
+      <th:block th:if="${#lists.isEmpty(suppliers)}"><div th:replace="~{fragments/components :: empty('&#128666;', 'No suppliers yet', 'Add your parts suppliers using the form.')}"></div></th:block>
+      <div class="table-wrap" th:unless="${#lists.isEmpty(suppliers)}"><table>
+        <thead><tr><th>Name</th><th>Contact</th><th>Phone</th><th>GSTIN</th><th>Status</th><th></th></tr></thead>
+        <tbody><tr th:each="s : ${suppliers}">
+          <td th:text="${s.name}">Name</td>
+          <td th:text="${s.contactPerson != null ? s.contactPerson : '-'}">-</td>
+          <td th:text="${s.phone != null ? s.phone : '-'}">-</td>
+          <td class="mono" th:text="${s.gstin != null ? s.gstin : '-'}">-</td>
+          <td><span class="badge" th:classappend="${s.active} ? 'b-green' : 'b-gray'" th:text="${s.active} ? 'Active' : 'Inactive'">Active</span></td>
+          <td class="right"><a class="btn btn-outline btn-sm" th:href="@{/admin/suppliers/{id}/edit(id=${s.id})}">Edit</a></td>
+        </tr></tbody></table></div>
+    </div>
+    <div class="card">
+      <h2 th:text="${editing != null} ? 'Edit supplier' : 'Add supplier'">Add supplier</h2>
+      <form th:action="@{/admin/suppliers}" th:object="${form}" method="post" novalidate>
+        <input type="hidden" name="id" th:if="${editing != null}" th:value="${editing.id}">
+        <div th:replace="~{fragments/components :: formerrors}"></div>
+        <div th:replace="~{fragments/components :: input('Supplier name *', 'name', 'text')}"></div>
+        <div th:replace="~{fragments/components :: input('Contact person', 'contactPerson', 'text')}"></div>
+        <div th:replace="~{fragments/components :: input('Phone', 'phone', 'tel')}"></div>
+        <div th:replace="~{fragments/components :: input('Email', 'email', 'email')}"></div>
+        <div th:replace="~{fragments/components :: input('GSTIN', 'gstin', 'text')}"></div>
+        <div th:replace="~{fragments/components :: textarea('Address', 'address')}"></div>
+        <label class="check"><input type="checkbox" th:field="*{active}"> Active</label>
+        <div class="btn-row mt">
+          <button class="btn btn-primary" type="submit">Save supplier</button>
+          <a class="btn btn-outline" th:if="${editing != null}" th:href="@{/admin/suppliers}">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</main>
+</body>
+</html>

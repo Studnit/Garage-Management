@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/staff :: layout('Customer feedback', ~{::main}, 'feedback')}">
+<body>
+<main>
+  <div class="page-head"><div class="grow"><h1>Customer feedback</h1>
+    <span class="muted" th:if="${!#lists.isEmpty(reviews)}">Average rating <strong th:text="${#numbers.formatDecimal(avg, 1, 1)}">0.0</strong> / 5 from <span th:text="${#lists.size(reviews)}">0</span> reviews</span></div></div>
+  <th:block th:if="${#lists.isEmpty(reviews)}"><div th:replace="~{fragments/components :: empty('&#11088;', 'No feedback yet', 'Customers can rate a completed service from their portal.')}"></div></th:block>
+  <div class="card review" th:each="r : ${reviews}">
+    <div class="card-head">
+      <div><span th:replace="~{fragments/components :: stars(${r.rating})}"></span>
+        <strong th:text="${r.customer.name}">Customer</strong>
+        <small class="muted" th:text="${' - ' + @fmt.date(r.createdAt.toLocalDate())}"></small>
+        <span class="badge b-gray" th:unless="${r.published}">Hidden</span></div>
+      <form th:action="@{/admin/feedback/{id}/toggle(id=${r.id})}" method="post">
+        <button class="btn btn-outline btn-sm" type="submit" th:text="${r.published} ? 'Hide from website' : 'Publish on website'">Toggle</button></form>
+    </div>
+    <p th:text="${r.reviewText != null ? r.reviewText : '(no comment)'}">Review</p>
+    <form th:action="@{/admin/feedback/{id}/reply(id=${r.id})}" method="post">
+      <div class="field"><label th:for="'reply' + ${r.id}">Your reply</label>
+        <input type="text" name="reply" th:id="'reply' + ${r.id}" th:value="${r.reply}" maxlength="500"></div>
+      <button class="btn btn-outline btn-sm" type="submit">Save reply</button>
+    </form>
+  </div>
+</main>
+</body>
+</html>

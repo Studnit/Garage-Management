@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/staff :: layout('Job cards', ~{::main}, 'jobs')}">
+<body>
+<main>
+  <div class="page-head">
+    <div class="grow"><h1>Job cards</h1><span class="muted" th:if="${mine}">Showing jobs assigned to you</span></div>
+  </div>
+  <form class="filters" th:action="@{/admin/jobs}" method="get">
+    <div class="field grow search"><label for="q">Search</label>
+      <input type="text" id="q" name="q" th:value="${q}" placeholder="Job no, vehicle, customer..."></div>
+    <div class="field"><label for="status">Status</label>
+      <select id="status" name="status"><option value="">All</option>
+        <option th:each="s : ${statuses}" th:value="${s.name()}" th:text="${s.label}" th:selected="${status == s}">Status</option></select></div>
+    <label class="check"><input type="checkbox" name="active" value="true" th:checked="${active}"> In garage only</label>
+    <button class="btn" type="submit">Filter</button>
+    <a class="btn btn-outline" th:href="@{/admin/jobs}">Reset</a>
+  </form>
+  <th:block th:if="${#lists.isEmpty(jobs)}"><div th:replace="~{fragments/components :: empty('&#128295;', 'No job cards', 'Job cards are created when a vehicle is received at the garage.')}"></div></th:block>
+  <div class="table-wrap" th:unless="${#lists.isEmpty(jobs)}">
+    <table>
+      <thead><tr><th data-sort>Job</th><th data-sort>Vehicle</th><th data-sort>Customer</th><th data-sort>Mechanic</th><th data-sort>Stage</th><th>Job status</th><th class="num">Estimate</th></tr></thead>
+      <tbody>
+        <tr th:each="j : ${jobs}" class="row-link" th:attr="data-href=@{/admin/jobs/{id}(id=${j.id})}">
+          <td><a th:href="@{/admin/jobs/{id}(id=${j.id})}" th:text="${j.jobNo}">JC</a></td>
+          <td><span class="plate" th:text="${j.vehicle.regNo}">MH12</span> <small th:text="${j.vehicle.displayName}"></small></td>
+          <td th:text="${j.customer.name}">Customer</td>
+          <td th:text="${j.mechanic != null ? j.mechanic.user.fullName : '-'}">-</td>
+          <td><span th:replace="~{fragments/components :: badge(${j.booking.status})}"></span></td>
+          <td><span th:replace="~{fragments/components :: badge(${j.status})}"></span></td>
+          <td class="num" th:text="${@fmt.money(j.estimatedTotal)}">0</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</main>
+</body>
+</html>

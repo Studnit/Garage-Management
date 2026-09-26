@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{fragments/site :: layout('Services', ~{::main}, 'services')}">
+<body>
+<main class="section">
+  <h1>Garage services</h1>
+  <p class="sub">All prices are indicative &quot;starting from&quot; amounts excluding GST. You always get an itemised estimate and approve it before work begins.</p>
+  <div th:each="entry : ${grouped}" class="mb">
+    <h2 th:text="${entry.key.label}">Category</h2>
+    <div class="grid g3">
+      <div class="service-card" th:each="s : ${entry.value}">
+        <span class="icon" th:text="${s.icon != null ? s.icon : '&#128295;'}">&#128295;</span>
+        <h3 th:text="${s.name}">Service</h3>
+        <p class="muted" th:text="${s.description}">Description</p>
+        <span class="price" th:if="${s.basePrice.signum() > 0}" th:text="'from ' + ${@fmt.money(s.basePrice)}">from</span>
+        <small class="muted" th:if="${s.estimatedHours != null and s.estimatedHours.signum() > 0}"
+               th:text="'Approx. ' + ${@fmt.qty(s.estimatedHours)} + ' hours'"></small>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <strong>Need something else or urgent help?</strong>
+    Call <a th:href="${garage.phoneLink}" th:text="${garage.phone}">+91</a> - we are open <span th:text="${garage.hoursText}">hours</span>.
+    <div class="btn-row mt">
+      <a class="btn btn-primary" th:href="@{/portal/bookings/new}" sec:authorize="hasRole('CUSTOMER')">Book a service</a>
+      <a class="btn btn-primary" th:href="@{/register}" sec:authorize="!isAuthenticated()">Create account &amp; book</a>
+    </div>
+  </div>
+</main>
+</body>
+</html>

@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/site :: layout('My profile', ~{::main}, 'p-profile')}">
+<body>
+<main>
+  <div class="page-head"><div class="grow"><h1>My profile</h1><span class="muted" th:text="${'Customer ID ' + customer.code}"></span></div>
+    <div class="actions"><a class="btn btn-outline" th:href="@{/account/password}">Change password</a></div></div>
+  <div class="alert alert-danger" th:if="${error != null}" th:text="${error}">Error</div>
+  <div class="card">
+    <form th:action="@{/portal/profile}" th:object="${form}" method="post" novalidate>
+      <div th:replace="~{fragments/components :: formerrors}"></div>
+      <input type="hidden" th:field="*{mobile}">
+      <input type="hidden" th:field="*{email}">
+      <div class="form-grid">
+        <div th:replace="~{fragments/components :: input('Full name *', 'name', 'text')}"></div>
+        <div class="field"><label>Mobile (contact us to change)</label><input type="text" th:value="${customer.mobile}" disabled></div>
+        <div class="field"><label>Email / login (contact us to change)</label><input type="text" th:value="${customer.email}" disabled></div>
+        <div th:replace="~{fragments/components :: input('City', 'city', 'text')}"></div>
+        <div class="full" th:replace="~{fragments/components :: textarea('Address', 'address')}"></div>
+        <div th:replace="~{fragments/components :: input('Pincode', 'pincode', 'text')}"></div>
+        <div th:replace="~{fragments/components :: input('GSTIN (optional, for a GST invoice)', 'gstin', 'text')}"></div>
+      </div>
+      <div class="btn-row mt"><button class="btn btn-primary" type="submit">Save profile</button></div>
+    </form>
+  </div>
+</main>
+</body>
+</html>

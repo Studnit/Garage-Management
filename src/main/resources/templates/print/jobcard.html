@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title th:text="${job.jobNo} + ' | ' + ${garage.name}">Job card</title>
+  <link rel="icon" type="image/svg+xml" th:href="@{/img/favicon.svg}">
+  <link rel="stylesheet" th:href="@{/css/print.css}">
+</head>
+<body>
+<div class="toolbar">
+  <button type="button" data-print>Print</button>
+  <a th:href="@{/admin/jobs/{id}(id=${job.id})}">Back</a>
+</div>
+<div class="page">
+  <div class="hd">
+    <div>
+      <h1 th:text="${garage.name}">City Car Services</h1>
+      <div class="co"><span th:text="${garage.address}">address</span><br>Phone: <span th:text="${garage.phone}">phone</span></div>
+    </div>
+    <div class="doc">
+      <h2>JOB CARD</h2>
+      <table>
+        <tr><td>Job no.</td><td><b th:text="${job.jobNo}">JC</b></td></tr>
+        <tr><td>Booking</td><td th:text="${job.booking.bookingNo}">BK</td></tr>
+        <tr><td>Received</td><td th:text="${@fmt.dateTime(job.createdAt)}">-</td></tr>
+        <tr><td>Stage</td><td th:text="${job.booking.status.label}">-</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="two">
+    <div class="box"><h4>Customer</h4><b th:text="${job.customer.name}">Customer</b><br>Mobile: <span th:text="${job.customer.mobile}">98</span></div>
+    <div class="box"><h4>Vehicle</h4><b th:text="${job.vehicle.regNo}">MH12</b> - <span th:text="${job.vehicle.displayName}">Car</span><br>
+      Odometer in: <span th:text="${job.odometerIn} + ' km'"></span> | Fuel: <span th:text="${job.fuelLevel != null ? job.fuelLevel : '-'}"></span></div>
+  </div>
+  <div class="two">
+    <div class="box"><h4>Customer complaint</h4><span th:text="${job.complaint != null ? job.complaint : '-'}">-</span></div>
+    <div class="box"><h4>Mechanic</h4><span th:text="${job.mechanic != null ? job.mechanic.user.fullName : 'Not assigned'}">-</span><br>
+      <span class="small">Advisor notes: <span th:text="${job.advisorNotes != null ? job.advisorNotes : '-'}"></span></span></div>
+  </div>
+
+  <h3>Work items</h3>
+  <table class="items">
+    <thead><tr><th>#</th><th>Description</th><th>Type</th><th class="r">Qty</th><th class="r">Amount (incl. GST)</th><th>Approval</th></tr></thead>
+    <tbody>
+      <tr th:each="l, st : ${job.lines}">
+        <td th:text="${st.count}">1</td><td th:text="${l.description}">Item</td><td th:text="${l.lineType.label}">Labour</td>
+        <td class="r" th:text="${@fmt.qty(l.quantity)}">1</td><td class="r" th:text="${@fmt.plain(l.total)}">0</td>
+        <td th:text="${l.approval.label}">Draft</td>
+      </tr>
+      <tr th:if="${#lists.isEmpty(job.lines)}"><td colspan="6" class="small">No work items yet.</td></tr>
+    </tbody>
+  </table>
+  <p class="small">Estimated: <b th:text="${@fmt.money(job.estimatedTotal)}">0</b> &nbsp; Approved by customer: <b th:text="${@fmt.money(job.approvedTotal)}">0</b></p>
+
+  <th:block th:if="${inspection != null}">
+    <h3>Inspection</h3>
+    <table class="items">
+      <thead><tr><th>Area</th><th>Condition</th><th>Remarks</th></tr></thead>
+      <tbody><tr th:each="it : ${inspection.items}">
+        <td th:text="${it.area.label}">Engine</td>
+        <td><span class="cond" th:classappend="'c-' + ${it.condition.name()}" th:text="${it.condition.label}">Good</span></td>
+        <td th:text="${it.remarks != null ? it.remarks : ''}"></td></tr></tbody>
+    </table>
+    <p class="small" th:if="${inspection.recommendedRepairs != null}"><b>Recommended repairs:</b> <span th:text="${inspection.recommendedRepairs}"></span></p>
+    <p class="small" th:if="${inspection.defectiveParts != null}"><b>Defective parts:</b> <span th:text="${inspection.defectiveParts}"></span></p>
+  </th:block>
+
+  <div class="sign"><div>Customer signature</div><div>Service advisor</div><div>Mechanic</div></div>
+</div>
+<script th:src="@{/js/app.js}" defer></script>
+</body>
+</html>

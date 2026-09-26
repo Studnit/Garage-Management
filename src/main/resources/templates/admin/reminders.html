@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/staff :: layout('Service reminders', ~{::main}, 'reminders')}">
+<body>
+<main>
+  <div class="page-head">
+    <div class="grow"><h1>Service reminders</h1><span class="muted">Next service, insurance and PUC expiry. Sent automatically every day at 9:00 AM.</span></div>
+    <div class="actions">
+      <form th:action="@{/admin/reminders/run}" method="post" data-confirm="Scan all vehicles now and send due reminders?">
+        <button class="btn btn-primary" type="submit">Scan &amp; send now</button></form>
+    </div>
+  </div>
+  <form class="filters" th:action="@{/admin/reminders}" method="get">
+    <div class="field"><label for="status">Status</label>
+      <select id="status" name="status"><option value="">All</option>
+        <option th:each="s : ${statuses}" th:value="${s.name()}" th:text="${s.label}" th:selected="${status == s}">Status</option></select></div>
+    <button class="btn" type="submit">Filter</button>
+  </form>
+  <th:block th:if="${#lists.isEmpty(reminders)}"><div th:replace="~{fragments/components :: empty('&#128276;', 'No reminders', 'Reminders are created when a service, insurance or PUC date is coming up.')}"></div></th:block>
+  <div class="table-wrap" th:unless="${#lists.isEmpty(reminders)}">
+    <table>
+      <thead><tr><th>Due</th><th>Type</th><th>Customer</th><th>Vehicle</th><th>Status</th><th>Result</th><th></th></tr></thead>
+      <tbody>
+        <tr th:each="r : ${reminders}">
+          <td class="nowrap" th:text="${@fmt.date(r.dueDate)}">-</td>
+          <td th:text="${r.type.label}">Type</td>
+          <td><a th:href="@{/admin/customers/{id}(id=${r.customer.id})}" th:text="${r.customer.name}">Customer</a></td>
+          <td><span class="plate" th:text="${r.vehicle.regNo}">MH12</span></td>
+          <td><span th:replace="~{fragments/components :: badge(${r.status})}"></span></td>
+          <td><small class="muted" th:text="${r.result != null ? r.result : ''}"></small></td>
+          <td class="right nowrap">
+            <th:block th:if="${r.status.name() == 'PENDING' or r.status.name() == 'FAILED'}">
+              <a class="btn btn-outline btn-sm" target="_blank" rel="noopener" th:href="${@fmt.waLink(r.customer.mobile, r.message)}">WhatsApp</a>
+              <form th:action="@{/admin/reminders/{id}/send(id=${r.id})}" method="post" style="display:inline"><button class="btn btn-outline btn-sm" type="submit">Send</button></form>
+              <form th:action="@{/admin/reminders/{id}/sent(id=${r.id})}" method="post" style="display:inline"><button class="btn btn-outline btn-sm" type="submit">Mark sent</button></form>
+              <form th:action="@{/admin/reminders/{id}/dismiss(id=${r.id})}" method="post" style="display:inline" data-confirm="Dismiss this reminder?"><button class="btn btn-outline btn-sm" type="submit">Dismiss</button></form>
+            </th:block>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</main>
+</body>
+</html>

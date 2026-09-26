@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/staff :: layout('New booking', ~{::main}, 'bookings')}">
+<body>
+<main>
+  <div class="page-head"><div class="grow">
+    <div class="crumbs"><a th:href="@{/admin/customers/{id}(id=${customer.id})}" th:text="${customer.name}">Customer</a></div>
+    <h1>New booking</h1></div></div>
+  <div class="alert alert-danger" th:if="${error != null}" th:text="${error}">Error</div>
+  <div class="alert alert-warn" th:if="${#lists.isEmpty(vehicles)}">
+    This customer has no vehicle yet. <a th:href="@{/admin/vehicles/new(customerId=${customer.id})}">Add a vehicle</a> first.
+  </div>
+  <div class="card">
+    <form th:action="@{/admin/bookings/new}" th:object="${form}" method="post" novalidate>
+      <input type="hidden" th:field="*{customerId}">
+      <div th:replace="~{fragments/components :: formerrors}"></div>
+      <div th:replace="~{fragments/forms :: bookingFields(${vehicles}, ${services})}"></div>
+      <div class="form-grid mt">
+        <div class="field"><label for="source">Booking source</label>
+          <select th:field="*{source}"><option th:each="s : ${sources}" th:value="${s.name()}" th:text="${s.label}">Walk-in</option></select></div>
+        <div class="field"><span class="label">Confirmation</span>
+          <label class="check"><input type="checkbox" name="confirmed" value="true" checked> Confirm the booking immediately</label></div>
+      </div>
+      <div class="btn-row mt">
+        <button class="btn btn-primary" type="submit" th:disabled="${#lists.isEmpty(vehicles)}">Create booking</button>
+        <a class="btn btn-outline" th:href="@{/admin/customers/{id}(id=${customer.id})}">Cancel</a>
+      </div>
+    </form>
+  </div>
+</main>
+</body>
+</html>
